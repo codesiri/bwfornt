@@ -179,7 +179,6 @@ const searchOption = [
     value: "N",
   },
 ];
-const queryFormRef = ref();
 const dataFormRef = ref();
 
 const loading = ref(false);

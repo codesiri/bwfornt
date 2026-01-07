@@ -127,7 +127,7 @@ export interface DvMachineryTypeFormTree {
   updateBy?: string;
   /** 更新时间 */
   updateTime?: Date;
-  children: DvMachineryTypeFormTree[];
+  children?: DvMachineryTypeFormTree[];
 }
 export type DvMachineryTypeFormTreeList = DvMachineryTypeFormTree[];
 /** 设备类型分页对象 */
