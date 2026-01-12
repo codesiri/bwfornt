@@ -8,26 +8,11 @@
     border
     @selection-change="handleSelectionChange"
   >
-    <el-table-column type="selection" width="55" align="center" />
-
+    <el-table-column key="tagNumber" label="位号" prop="tagNumber" min-width="150" align="center" />
     <el-table-column
       key="deviceName"
       label="装置名称"
       prop="deviceName"
-      min-width="150"
-      align="center"
-    />
-    <el-table-column key="tagNumber" label="位号" prop="tagNumber" min-width="150" align="center" />
-    <el-table-column key="status" label="设备状态" prop="status" min-width="150" align="center">
-      <template #default="scope">
-        <DictLabel v-model="scope.row.status" code="status" />
-      </template>
-    </el-table-column>
-    <el-table-column key="status" label="设备类型id" prop="status" min-width="150" align="center" />
-    <el-table-column
-      key="installationLocationAndPurpose"
-      label="安装位置以及用途"
-      prop="installationLocationAndPurpose"
       min-width="150"
       align="center"
     />
@@ -38,6 +23,40 @@
       min-width="150"
       align="center"
     />
+    <el-table-column key="dvType" label="设备类型" prop="dvType" min-width="150" align="center" />
+    <el-table-column key="status" label="设备状态" prop="status" min-width="150" align="center">
+      <template #default="scope">
+        <DictLabel v-model="scope.row.status" code="status" />
+      </template>
+    </el-table-column>
+
+    <el-table-column
+      key="interlocked"
+      label="是否带连锁"
+      prop="interlocked"
+      min-width="150"
+      align="center"
+    >
+      <template #default="scope">
+        <DictLabel v-model="scope.row.interlocked" code="interlocked" />
+      </template>
+    </el-table-column>
+    <el-table-column
+      key="interlockSetValue"
+      label="联锁设定值"
+      prop="interlockSetValue"
+      min-width="150"
+      align="center"
+    />
+
+    <el-table-column
+      key="installationLocationAndPurpose"
+      label="安装位置以及用途"
+      prop="installationLocationAndPurpose"
+      min-width="150"
+      align="center"
+    />
+
     <el-table-column
       key="indexNumber"
       label="分度号"
@@ -88,20 +107,7 @@
       min-width="150"
       align="center"
     />
-    <el-table-column
-      key="interlocked"
-      label="是否带连锁"
-      prop="interlocked"
-      min-width="150"
-      align="center"
-    />
-    <el-table-column
-      key="interlockSetValue"
-      label="联锁设定值"
-      prop="interlockSetValue"
-      min-width="150"
-      align="center"
-    />
+
     <el-table-column key="remark" label="备注" prop="remark" min-width="150" align="center" />
     <el-table-column fixed="right" label="操作" width="220">
       <template #default="scope">
@@ -131,6 +137,7 @@
           size="small"
           link
           icon="delete"
+          @click="deleteDv(scope)"
         >
           删除
         </el-button>
@@ -153,7 +160,7 @@ const loading = defineModel<boolean>("loading", {
   required: true,
 });
 
-const emit = defineEmits(["handleSelectionChange", "edit", "detail"]);
+const emit = defineEmits(["handleSelectionChange", "edit", "detail", "delete"]);
 
 const handleSelectionChange = (selection: any) => {
   emit("handleSelectionChange", [selection]);
@@ -163,6 +170,9 @@ const editDv = (data: DvTemperatureGaugeForm) => {
 };
 const detailDv = (data: DvTemperatureGaugePageVO) => {
   emit("detail", [data]);
+};
+const deleteDv = (data: DvTemperatureGaugeForm) => {
+  emit("delete", [data]);
 };
 //获取字典数据
 </script>

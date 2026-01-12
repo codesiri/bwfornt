@@ -33,8 +33,9 @@
         <el-form-item label="设备状态" prop="status">
           <dict v-model="formData.status" code="status" />
         </el-form-item>
-        <el-form-item label="设备类型id" prop="dvType">
-          <div ref="tableSelectRef">
+        <el-form-item label="设备类型" prop="dvType">
+          <el-input v-model="formData.dvType" placeholder="请输入设备类型" />
+          <!-- <div ref="tableSelectRef">
             <el-popover
               :width="popoverWidth"
               trigger="click"
@@ -64,7 +65,7 @@
                   </el-input>
                 </div>
               </template>
-              <!-- 弹出框内容 -->
+              弹出框内容
               <div ref="popoverContentRef">
                 <el-table
                   ref="dataTableRef"
@@ -134,10 +135,10 @@
                 </div>
               </div>
             </el-popover>
-          </div>
+          </div> -->
         </el-form-item>
-        <el-form-item label="所属工厂" prop="dvType">
-          <el-input v-model="formData.dvType" placeholder="请输入所在工厂" />
+        <el-form-item label="所属工厂" prop="manufacturer">
+          <el-input v-model="formData.factory" placeholder="请输入所在工厂" />
         </el-form-item>
 
         <el-form-item label="安装位置以及用途" prop="installationLocationAndPurpose">
@@ -187,15 +188,19 @@
         </el-form-item>
 
         <el-form-item label="是否带连锁" prop="interlocked">
-          <el-input v-model="formData.interlocked" placeholder="是否带连锁" />
+          <dict v-model="formData.interlocked" code="interlocked" />
         </el-form-item>
 
         <el-form-item label="联锁设定值" prop="interlockSetValue">
-          <el-input v-model="formData.interlockSetValue" placeholder="联锁设定值" />
+          <el-input
+            v-model="formData.interlockSetValue"
+            :disabled="disabledInterLockSetValue"
+            placeholder="联锁设定值"
+          />
         </el-form-item>
 
         <el-form-item label="备注" prop="remark">
-          <el-input v-model="formData.remark" placeholder="备注" />
+          <el-input v-model="formData.remark" type="textarea" placeholder="备注" />
         </el-form-item>
       </el-form>
     </template>
@@ -210,16 +215,16 @@
 <script setup lang="ts">
 import { DrawerProps, FormProps } from "element-plus";
 import { DvTemperatureGaugeForm } from "@/api/ledger/dv-temperature-gauge-api";
-import DvMachineryTypeAPI, {
-  DvMachineryTypeFormTreeList,
-} from "@/api/system/dv-machinery-type-api";
-import { handleTree } from "@/utils/handletree";
+// import DvMachineryTypeAPI, {
+//   DvMachineryTypeFormTreeList,
+// } from "@/api/system/dv-machinery-type-api";
+// import { handleTree } from "@/utils/handletree";
 const visable = defineModel<boolean>("visable", { required: true });
 const direction = ref<DrawerProps["direction"]>("rtl");
 const formData = defineModel<DvTemperatureGaugeForm>("formdata", { required: true });
 const labelPosition = ref<FormProps["labelPosition"]>("right");
-const popvisable = ref<boolean>(false);
-const loading = ref<boolean>(false);
+// const popvisable = ref<boolean>(false);
+// const loading = ref<boolean>(false);
 const tableSelectRef = ref();
 const popoverWidth = ref<string>("100%");
 const dataFormRef = ref();
@@ -229,7 +234,6 @@ const rules = reactive({
   tagNumber: [{ required: true, message: "请输入位号", trigger: "blur" }],
   deviceNameSuffix: [{ required: true, message: "请输入设备名称", trigger: "blur" }],
   dvType: [{ requried: true, message: "请选择设备类型", trigger: "blur" }],
-  status: [{ requried: true, message: "请输入设备状态", tigger: "blur" }],
 });
 
 const emit = defineEmits<{
@@ -237,25 +241,25 @@ const emit = defineEmits<{
   (e: "confirm"): void;
   (e: "selectedRow", data: DvTemperatureGaugeForm): void;
 }>();
-const listDvTypeData = ref<DvMachineryTypeFormTreeList>([]);
+// const listDvTypeData = ref<DvMachineryTypeFormTreeList>([]);
 
 useResizeObserver(tableSelectRef, (entries) => {
   popoverWidth.value = `${entries[0].contentRect.width + entries[1].contentRect.width + entries[2].contentRect.width}px`;
 });
-const handleQuery = () => {
-  loading.value = true;
-  DvMachineryTypeAPI.getList()
-    .then((data) => {
-      listDvTypeData.value = handleTree(data, "machineryTypeId", "parentTypeId");
-    })
-    .finally(() => {
-      loading.value = false;
-    });
-};
-const selectRow = (val: DvTemperatureGaugeForm | undefined) => {
-  console.log(val);
-  emit("selectedRow", val!);
-};
+// const handleQuery = () => {
+//   loading.value = true;
+//   DvMachineryTypeAPI.getList()
+//     .then((data) => {
+//       listDvTypeData.value = handleTree(data, "machineryTypeId", "parentTypeId");
+//     })
+//     .finally(() => {
+//       loading.value = false;
+//     });
+// };
+// const selectRow = (val: DvTemperatureGaugeForm | undefined) => {
+//   console.log(val);
+//   emit("selectedRow", val!);
+// };
 const cancelClick = () => {
   emit("cancel");
 };
@@ -268,20 +272,24 @@ const confirmClick = () => {
     }
   });
 };
-const handleShow = () => {
-  console.log("处理展示前的函数");
-  handleQuery();
-};
-const handleConfirm = () => {
-  console.log("处理确认");
-};
-const handleClear = () => {
-  console.log("处理清空");
-};
+// const handleShow = () => {
+//   console.log("处理展示前的函数");
+//   handleQuery();
+// };
+// const handleConfirm = () => {
+//   console.log("处理确认");
+// };
+// const handleClear = () => {
+//   console.log("处理清空");
+// };
 
-const handleClose = () => {
-  console.log("处理关闭");
-};
+// const handleClose = () => {
+//   console.log("处理关闭");
+// };
+const disabledInterLockSetValue = computed(() => {
+  const value = formData.value.interlocked as number;
+  return value == 0;
+});
 </script>
 
 <style scoped lang="scss">

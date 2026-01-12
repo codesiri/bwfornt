@@ -70,6 +70,7 @@ export default DvTemperatureGaugeAPI;
 export interface DvTemperatureGaugePageQuery extends PageQuery {
   tagNumber?: string;
   status?: number;
+  dvName?: string;
 }
 
 /** 温度表单对象 */
@@ -101,13 +102,14 @@ export interface DvTemperatureGaugeForm {
   /** 套管规格和及材质 */
   casingSpecificationsAndMaterial?: string;
   /** 是否带连锁 */
-  interlocked?: string;
+  interlocked?: number;
   /** 联锁设定值 */
   interlockSetValue?: string;
   /** 备注 */
   remark?: string;
   status?: number;
   dvType?: number;
+  factory?: string;
 }
 
 /** 温度分页对象 */
@@ -139,11 +141,12 @@ export interface DvTemperatureGaugePageVO {
   /** 套管规格和及材质 */
   casingSpecificationsAndMaterial?: string;
   /** 是否带连锁 */
-  interlocked?: string;
+  interlocked?: number;
   /** 联锁设定值 */
   interlockSetValue?: string;
   /** 备注 */
   remark?: string;
   status?: number;
-  dvType?: number;
+  dvType?: string;
+  factory?: string;
 }

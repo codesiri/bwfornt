@@ -3,11 +3,15 @@
     <div class="search-container">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
         <el-form-item class="search-buttons" label="位号">
-          <el-input v-model="queryParams.tagNumber"></el-input>
+          <el-input v-model="queryParams.tagNumber" placeholder="请输入位号"></el-input>
+        </el-form-item>
+        <el-form-item label="设备名称">
+          <el-input v-model="queryParams.dvName" placeholder="请输入设备名称"></el-input>
         </el-form-item>
         <el-form-item label="设备状态">
           <dict v-model="queryParams.status" code="status" />
         </el-form-item>
+
         <el-form-item class="search-buttons">
           <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
           <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
@@ -31,6 +35,7 @@
         :page-data="pageData"
         @edit="editDv"
         @detail="detailDv"
+        @delete="deleteDv"
         @handle-selection-change="handleSelectionChange"
       ></table-data>
       <pagination
@@ -78,6 +83,7 @@ const queryParams = reactive<DvTemperatureGaugePageQuery>({
   pageSize: 10,
   tagNumber: "",
   status: undefined,
+  dvName: undefined,
 });
 
 // 温度表格数据
@@ -87,22 +93,7 @@ const formData = reactive<DvTemperatureGaugeForm>({});
 const detailsInfo = ref<DvTemperatureGaugePageVO>({});
 const editDv = (args: any) => {
   const [data] = args;
-  formData.id = data.row.id;
-  formData.indexNumber = data.row.indexNumber;
-  formData.insertionDepth = data.row.insertionDepth;
-  formData.installationLocationAndPurpose = data.row.installationLocationAndPurpose;
-  formData.interlockSetValue = data.row.interlockSetValue;
-  formData.interlocked = data.row.interlocked;
-  formData.manufacturer = data.row.manufacturer;
-  formData.measurementRange = data.row.measurementRange;
-  formData.precision = data.row.precision;
-  formData.remark = data.row.remark;
-  formData.specificationModel = data.row.specificationModel;
-  formData.tagNumber = data.row.tagNumber;
-  formData.status = data.row.status;
-  formData.deviceName = data.row.deviceName;
-  formData.deviceNameSuffix = data.row.deviceNameSuffix;
-  formData.dvType = data.row.dvType;
+  Object.assign(formData, data.row);
   openDrawer("edit");
 };
 
@@ -123,7 +114,25 @@ function handleQuery() {
       loading.value = false;
     });
 }
-
+//清空要添加的表单
+const resetAddFormData = () => {
+  formData.id = undefined;
+  formData.indexNumber = undefined;
+  formData.insertionDepth = undefined;
+  formData.installationLocationAndPurpose = undefined;
+  formData.interlockSetValue = undefined;
+  formData.interlocked = 0;
+  formData.manufacturer = undefined;
+  formData.measurementRange = undefined;
+  formData.precision = undefined;
+  formData.remark = undefined;
+  formData.specificationModel = undefined;
+  formData.tagNumber = undefined;
+  formData.status = 0;
+  formData.deviceName = undefined;
+  formData.deviceNameSuffix = undefined;
+  formData.dvType = undefined;
+};
 const openDrawer = (args?: any) => {
   drawerVisable.value = true;
   switch (args) {
@@ -131,6 +140,7 @@ const openDrawer = (args?: any) => {
       option.value = "edit";
       break;
     case "add":
+      resetAddFormData();
       option.value = "add";
       break;
     case "delete":
@@ -144,8 +154,15 @@ const resetQuery = () => {
   queryParams.pageSize = 10;
   queryParams.status = undefined;
   queryParams.tagNumber = "";
+  queryParams.dvName = undefined;
 };
 
+const deleteDv = (args?: any) => {
+  const [data] = args;
+  DvTemperatureGaugeAPI.deleteByIds(data.row.id).finally(() => {
+    handleResetQuery();
+  });
+};
 /** 重置温度查询 */
 function handleResetQuery() {
   queryFormRef.value!.resetFields();
@@ -160,6 +177,7 @@ function handleSelectionChange(selection: any) {
 
 const confirm = () => {
   if (option.value === "add") {
+    console.log(formData.dvType);
     DvTemperatureGaugeAPI.create(formData).finally(() => {
       drawerVisable.value = false;
       handleResetQuery();
