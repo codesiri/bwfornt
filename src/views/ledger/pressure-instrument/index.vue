@@ -3,10 +3,10 @@
     <div class="search-container">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
         <el-form-item class="search-buttons" label="位号">
-          <el-input v-model="queryParams.pressureTag"></el-input>
+          <el-input v-model="queryParams.pressureTag" placeholder="请输入位号"></el-input>
         </el-form-item>
         <el-form-item class="search-buttons" label="装置名称">
-          <el-input v-model="queryParams.pressureDevice"></el-input>
+          <el-input v-model="queryParams.pressureDevice" placeholder="请输入装置名称"></el-input>
         </el-form-item>
         <el-form-item class="search-buttons">
           <el-button type="primary" icon="search" @click="pressureHandleQuery">搜索</el-button>
@@ -112,24 +112,27 @@ const pageData = ref<DvPressureInstrumentPageVO[]>([]);
 // 压力表单数据
 const formData = reactive<DvPressureInstrumentForm>({});
 const detailsInfo = ref<DvPressureInstrumentPageVO>({});
+const resetAddFormData = () => {
+  formData.id = undefined;
+  formData.pressureAccuracy = undefined;
+  formData.pressureConnection = undefined;
+  formData.pressureDevice = undefined;
+  formData.pressureEquip = undefined;
+  formData.pressureHeat = 0;
+  formData.pressureInterlock = 0;
+  formData.pressureInterlockVal = undefined;
+  formData.pressureLocation = undefined;
+  formData.pressureManu = undefined;
+  formData.pressureModel = undefined;
+  formData.pressureOutput = undefined;
+  formData.pressurePower = undefined;
+  formData.pressureRange = undefined;
+  formData.pressureRemark = undefined;
+  formData.pressureTag = undefined;
+};
 const editDvPressure = (args: any) => {
   const [data] = args;
-  formData.id = data.row.id;
-  formData.pressureDevice = data.row.pressureDevice;
-  formData.pressureTag = data.row.pressureTag;
-  formData.pressureLocation = data.row.pressureLocation;
-  formData.pressureEquip = data.row.pressureEquip;
-  formData.pressureModel = data.row.pressureModel;
-  formData.pressureManu = data.row.pressureManu;
-  formData.pressureRange = data.row.pressureRange;
-  formData.pressureConnection = data.row.pressureConnection;
-  formData.pressureAccuracy = data.row.pressureAccuracy;
-  formData.pressurePower = data.row.pressurePower;
-  formData.pressureOutput = data.row.pressureOutput;
-  formData.pressureHeat = data.row.pressureHeat;
-  formData.pressureInterlock = data.row.pressureInterlock;
-  formData.pressureInterlockVal = data.row.pressureInterlock_val;
-  formData.pressureRemark = data.row.pressureRemark;
+  Object.assign(formData, data.row);
   openDrawer("edit");
 };
 
@@ -159,6 +162,7 @@ const openDrawer = (args?: any) => {
       break;
     case "add":
       option.value = "add";
+      resetAddFormData();
       break;
     case "delete":
       option.value = "delete";
@@ -214,7 +218,12 @@ function handleOpenImportDialog() {
 
 // 导出用户
 function handleExport() {
-  DvPressureInstrumentAPI.export(queryParams).then((response: any) => {
+  console.log(queryParams);
+
+  DvPressureInstrumentAPI.export({
+    pressureTag: queryParams.pressureTag as string,
+    pressureDevice: queryParams.pressureDevice as string,
+  }).then((response: any) => {
     const fileData = response.data;
     const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
     const fileType =

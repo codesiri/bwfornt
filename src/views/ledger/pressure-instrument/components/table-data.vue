@@ -93,14 +93,22 @@
       prop="pressureHeat"
       min-width="150"
       align="center"
-    />
+    >
+      <template #default="scope">
+        <DictLabel v-model="scope.row.pressureHeat" code="heat" />
+      </template>
+    </el-table-column>
     <el-table-column
       key="pressureInterlock"
       label="是否带连锁"
       prop="pressureInterlock"
       min-width="150"
       align="center"
-    />
+    >
+      <template #default="scope">
+        <DictLabel v-model="scope.row.pressureInterlock" code="interlocked" />
+      </template>
+    </el-table-column>
     <el-table-column
       key="pressureInterlockVal"
       label="联锁设定值"
@@ -156,6 +164,7 @@ import {
   DvPressureInstrumentPageVO,
   DvPressureInstrumentForm,
 } from "@/api/ledger/pressure-instrument-api";
+import DictLabel from "@/components/Dict/DictLabel.vue";
 
 const pageData = defineModel<DvPressureInstrumentPageVO[]>("pageData", {
   required: true,

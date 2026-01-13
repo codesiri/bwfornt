@@ -64,14 +64,18 @@
           <el-input v-model="formData.pressureOutput" placeholder="输出信号（如 4-20mA）" />
         </el-form-item>
         <el-form-item label="是否伴热" prop="pressureHeat">
-          <el-input v-model="formData.pressureHeat" placeholder="是否伴热" />
+          <dict v-model="formData.pressureHeat" code="heat" />
         </el-form-item>
         <el-form-item label="是否带连锁" prop="pressureInterlock">
-          <el-input v-model="formData.pressureInterlock" placeholder="是否带连锁" />
+          <dict v-model="formData.pressureInterlock" code="interlocked" />
         </el-form-item>
 
         <el-form-item label="联锁设定值" prop="pressureInterlock_val">
-          <el-input v-model="formData.pressureInterlockVal" placeholder="联锁设定值" />
+          <el-input
+            v-model="formData.pressureInterlockVal"
+            :disabled="formData.pressureInterlock == 0"
+            placeholder="联锁设定值"
+          />
         </el-form-item>
 
         <el-form-item label="备注" prop="pressureRemark">

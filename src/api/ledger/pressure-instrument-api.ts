@@ -67,7 +67,7 @@ const DvPressureInstrumentAPI = {
    *
    * @param queryParams 查询参数
    */
-  export(queryParams: DvPressureInstrumentPageQuery) {
+  export(queryParams: { pressureTag: string; pressureDevice: string }) {
     return request({
       url: `${DVPRESSUREINSTRUMENT_BASE_URL}/export`,
       method: "get",
@@ -137,9 +137,9 @@ export interface DvPressureInstrumentForm {
   /** 输出信号（如 4-20mA） */
   pressureOutput?: string;
   /** 是否伴热（是 / 否） */
-  pressureHeat?: string;
+  pressureHeat?: number;
   /** 是否带连锁 */
-  pressureInterlock?: string;
+  pressureInterlock?: number;
   /** 联锁设定值 */
   pressureInterlockVal?: string;
   /** 备注 */
@@ -173,9 +173,9 @@ export interface DvPressureInstrumentPageVO {
   /** 输出信号（如 4-20mA） */
   pressureOutput?: string;
   /** 是否伴热（是 / 否） */
-  pressureHeat?: string;
+  pressureHeat?: number;
   /** 是否带连锁 */
-  pressureInterlock?: string;
+  pressureInterlock?: number;
   /** 联锁设定值 */
   pressureInterlock_val?: string;
   /** 备注 */
