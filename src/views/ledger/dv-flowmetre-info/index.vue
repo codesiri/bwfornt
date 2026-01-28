@@ -37,144 +37,45 @@
     </div>
 
     <el-card shadow="never">
-      <div class="mb-10px">
-        <el-button
-          v-hasPerm="['ledger:dv-flowmetre-info:add']"
-          type="success"
-          icon="plus"
-          @click="handleOpenDialog()"
-        >
-          新增
-        </el-button>
-        <el-button
-          v-hasPerm="['ledger:dv-flowmetre-info:delete']"
-          type="danger"
-          :disabled="removeIds.length === 0"
-          icon="delete"
-          @click="handleDelete()"
-        >
-          删除
-        </el-button>
+      <div class="data-table__toolbar">
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['ledger:dv-flowmetre-info:add']"
+            type="success"
+            icon="plus"
+            @click="handleOpenDialog()"
+          >
+            新增
+          </el-button>
+          <el-button
+            v-hasPerm="['ledger:dv-flowmetre-info:delete']"
+            type="danger"
+            :disabled="removeIds.length === 0"
+            icon="delete"
+            @click="handleDelete()"
+          >
+            删除
+          </el-button>
+        </div>
+        <div class="data-table__toolbar--tools">
+          <el-button
+            v-hasPerm="'ledger:pressure-instrument:import'"
+            icon="upload"
+            @click="handleOpenImportDialog"
+          >
+            导入
+          </el-button>
+          <el-button
+            v-hasPerm="'ledger:pressure-instrument:export'"
+            icon="download"
+            @click="handleExport"
+          >
+            导出
+          </el-button>
+        </div>
       </div>
 
-      <el-table
-        ref="dataTableRef"
-        v-loading="loading"
-        :data="pageData"
-        highlight-current-row
-        border
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" align="center" />
-        <el-table-column
-          key="tagNumber"
-          label="仪表位号"
-          prop="tagNumber"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column key="device" label="装置" prop="device" min-width="150" align="center" />
-        <el-table-column key="purpose" label="用途" prop="purpose" min-width="150" align="center" />
-        <el-table-column
-          key="instrumentName"
-          label="仪表名称"
-          prop="instrumentName"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="measurementRange"
-          label="量程"
-          prop="measurementRange"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="manufacturer"
-          label="厂家"
-          prop="manufacturer"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="medium"
-          label="工艺介质-介质"
-          prop="medium"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="mediumStatus"
-          label="工艺介质-状态"
-          prop="mediumStatus"
-          min-width="150"
-          align="center"
-        >
-          <template #default="scope">
-            <DictLabel v-model="scope.row.mediumStatus" code="craft-status" />
-          </template>
-        </el-table-column>
-
-        <el-table-column
-          key="mediumPressure"
-          label="工艺介质-压力"
-          prop="mediumPressure"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="mediumTemperature"
-          label="工艺介质-温度"
-          prop="mediumTemperature"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="factoryNumber"
-          label="出厂编号"
-          prop="factoryNumber"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column key="remark" label="备注" prop="remark" min-width="150" align="center" />
-        <el-table-column label="设备状态" width="150" align="center">
-          <template #default="scope">
-            <DictLabel v-model="scope.row.status" code="status" />
-          </template>
-        </el-table-column>
-        <el-table-column
-          key="dvType"
-          label="设备类型"
-          prop="dvType"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column fixed="right" label="操作" width="220">
-          <template #default="scope">
-            <el-button
-              v-hasPerm="['ledger:dv-flowmetre-info:edit']"
-              type="primary"
-              size="small"
-              link
-              icon="edit"
-              @click="handleOpenDialog(scope.row)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              v-hasPerm="['ledger:dv-flowmetre-info:delete']"
-              type="danger"
-              size="small"
-              link
-              icon="delete"
-              @click="handleDelete(scope.row.id)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
+      <table-data :page-data="pageData" @delete="handleDelete2" @edit="handleEdit"></table-data>
       <pagination
         v-if="total > 0"
         v-model:total="total"
@@ -257,6 +158,7 @@
         </div>
       </template>
     </el-drawer>
+    <export-data v-model="importVisible"></export-data>
   </div>
 </template>
 
@@ -271,7 +173,8 @@ import DvFlowmetreInfoAPI, {
   DvFlowmetreInfoForm,
   DvFlowmetreInfoPageQuery,
 } from "@/api/ledger/dv-flowmetre-info-api";
-
+import tableData from "./componets/table-data.vue";
+import exportData from "./componets/export-data.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
 
@@ -282,8 +185,12 @@ const total = ref(0);
 const queryParams = reactive<DvFlowmetreInfoPageQuery>({
   pageNum: 1,
   pageSize: 10,
+  dvType: undefined,
+  status: undefined,
+  tagNumber: undefined,
+  instrumentName: undefined,
 });
-
+const importVisible = ref(false);
 // 流量计表格数据
 const pageData = ref<DvFlowmetreInfoPageVO[]>([]);
 
@@ -306,6 +213,24 @@ const rules = reactive({
   dvType: [{ required: true, message: "请输入设备类型", trigger: "blur" }],
 });
 
+const resetAddFormData = () => {
+  //证明是新增
+  formData.id = undefined;
+  formData.device = undefined;
+  formData.dvType = undefined;
+  formData.factoryNumber = undefined;
+  formData.instrumentName = undefined;
+  formData.manufacturer = undefined;
+  formData.measurementRange = undefined;
+  formData.medium = undefined;
+  formData.mediumPressure = undefined;
+  formData.mediumStatus = undefined;
+  formData.mediumTemperature = undefined;
+  formData.purpose = undefined;
+  formData.remark = undefined;
+  formData.status = undefined;
+  formData.tagNumber = undefined;
+};
 /** 查询流量计 */
 function handleQuery() {
   loading.value = true;
@@ -326,11 +251,6 @@ function handleResetQuery() {
   handleQuery();
 }
 
-/** 行复选框选中记录选中ID集合 */
-function handleSelectionChange(selection: any) {
-  removeIds.value = selection.map((item: any) => item.id);
-}
-
 /** 打开流量计弹窗 */
 function handleOpenDialog(item?: any) {
   dialog.visible = true;
@@ -338,8 +258,15 @@ function handleOpenDialog(item?: any) {
     //证明是修改
     Object.assign(formData, item);
     dialog.title = "修改差压流量计";
+  } else {
+    resetAddFormData();
   }
 }
+
+const handleEdit = (data: any) => {
+  const [row] = data;
+  handleOpenDialog(row);
+};
 
 /** 提交流量计表单 */
 function handleSubmit() {
@@ -347,8 +274,9 @@ function handleSubmit() {
     if (valid) {
       loading.value = true;
       const id = formData.id;
+      console.log(id);
       if (id) {
-        DvFlowmetreInfoAPI.update(id.toString(), formData)
+        DvFlowmetreInfoAPI.update(id, formData)
           .then(() => {
             ElMessage.success("修改成功");
             handleCloseDialog();
@@ -404,6 +332,39 @@ function handleDelete(id?: number) {
   );
 }
 
+const handleDelete2 = (scope: any) => {
+  const [data] = scope;
+  handleDelete(data.id);
+};
+const handleExport = () => {
+  DvFlowmetreInfoAPI.export({
+    dvType: queryParams.dvType,
+    status: queryParams.status,
+    tagNumber: queryParams.tagNumber,
+    instrumentName: queryParams.instrumentName,
+  }).then((response: any) => {
+    const fileData = response.data;
+    const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
+    const fileType =
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
+
+    const blob = new Blob([fileData], { type: fileType });
+    const downloadUrl = window.URL.createObjectURL(blob);
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = downloadUrl;
+    downloadLink.download = fileName;
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+
+    document.body.removeChild(downloadLink);
+    window.URL.revokeObjectURL(downloadUrl);
+  });
+};
+const handleOpenImportDialog = () => {
+  importVisible.value = true;
+};
 onMounted(() => {
   handleQuery();
 });

@@ -43,7 +43,7 @@ const DvFlowmetreInfoAPI = {
    * @param id 流量计ID
    * @param data 流量计表单数据
    */
-  update(id: string, data: DvFlowmetreInfoForm) {
+  update(id: number, data: DvFlowmetreInfoForm) {
     return request({
       url: `${DVFLOWMETREINFO_BASE_URL}/${id}`,
       method: "put",
@@ -60,6 +60,41 @@ const DvFlowmetreInfoAPI = {
     return request({
       url: `${DVFLOWMETREINFO_BASE_URL}/${ids}`,
       method: "delete",
+    });
+  },
+  /**
+   * 压力表导出
+   *
+   * @param queryParams 查询参数
+   */
+  export(queryParams: any) {
+    return request({
+      url: `${DVFLOWMETREINFO_BASE_URL}/export`,
+      method: "get",
+      params: queryParams,
+      responseType: "blob",
+    });
+  },
+  /**
+   * 下载流量计导入模板
+   */
+  downloadTemplate() {
+    return request({
+      url: `${DVFLOWMETREINFO_BASE_URL}/downtemplate`,
+      method: "get",
+      responseType: "blob",
+    });
+  },
+  importFile(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<any, ExcelResult>({
+      url: `${DVFLOWMETREINFO_BASE_URL}/import`,
+      method: "post",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
   },
 };

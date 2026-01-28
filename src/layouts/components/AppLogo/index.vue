@@ -4,7 +4,8 @@
       <router-link :key="+collapse" class="wh-full flex-center" to="/">
         <img :src="logo" class="w20px h20px" />
         <span v-if="!collapse" class="title">
-          {{ defaultSettings.title }}
+          <!-- {{ defaultSettings.title }} -->
+          河南百维EAM资产管理系统
         </span>
       </router-link>
     </transition>
@@ -12,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defaultSettings } from "@/settings";
+// import { defaultSettings } from "@/settings";
 import logo from "@/assets/logo.png";
 
 defineProps({

@@ -20,16 +20,37 @@
     </div>
 
     <el-card shadow="never">
-      <div class="mb-10px">
-        <el-button
-          v-hasPerm="['ledger:dv-temperature-gauge:add']"
-          type="success"
-          icon="plus"
-          @click="openDrawer('add')"
-        >
-          新增
-        </el-button>
+      <div class="data-table__toolbar">
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['ledger:dv-temperature-gauge:add']"
+            type="success"
+            icon="plus"
+            @click="openDrawer('add')"
+          >
+            新增
+          </el-button>
+        </div>
+
+        <div class="data-table__toolbar--tools">
+          <el-button
+            v-hasPerm="'ledger:pressure-instrument:import'"
+            icon="upload"
+            @click="handleOpenImportDialog"
+          >
+            导入
+          </el-button>
+
+          <el-button
+            v-hasPerm="'ledger:pressure-instrument:export'"
+            icon="download"
+            @click="handleExport"
+          >
+            导出
+          </el-button>
+        </div>
       </div>
+
       <table-data
         :loading="loading"
         :page-data="pageData"
@@ -53,6 +74,11 @@
       @confirm="confirm"
     />
     <drawer-detail :visable="detailDrawerVisiable" :page-data="detailsInfo" @close="close" />
+    <export-data
+      v-model="importDialogVisible"
+      @import-success="pressureHandleResetQuery()"
+      @importttemplate="downtemplate()"
+    ></export-data>
   </div>
 </template>
 
@@ -60,6 +86,7 @@
 import drawerPlus from "./componets/drawer-plus.vue";
 import drawerDetail from "./componets/drawer-detail.vue";
 import tableData from "./componets/table-data.vue";
+import exportData from "./componets/export-data.vue";
 defineOptions({
   name: "DvTemperatureGauge",
   inheritAttrs: false,
@@ -72,7 +99,7 @@ import DvTemperatureGaugeAPI, {
 } from "@/api/ledger/dv-temperature-gauge-api";
 const queryFormRef = ref();
 const loading = ref(false);
-
+const importDialogVisible = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
 const drawerVisable: Ref<boolean> = ref(false);
@@ -196,6 +223,57 @@ const cancel = () => {
 };
 const close = () => {
   detailDrawerVisiable.value = !detailDrawerVisiable.value;
+};
+
+const handleOpenImportDialog = () => {
+  importDialogVisible.value = true;
+};
+const handleExport = () => {
+  DvTemperatureGaugeAPI.export({
+    status: queryParams.status,
+    tagNumber: queryParams.tagNumber,
+    dvName: queryParams.dvName,
+  }).then((response: any) => {
+    const fileData = response.data;
+    const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
+    const fileType =
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
+
+    const blob = new Blob([fileData], { type: fileType });
+    const downloadUrl = window.URL.createObjectURL(blob);
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = downloadUrl;
+    downloadLink.download = fileName;
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+
+    document.body.removeChild(downloadLink);
+    window.URL.revokeObjectURL(downloadUrl);
+  });
+};
+const pressureHandleResetQuery = () => {};
+const downtemplate = () => {
+  DvTemperatureGaugeAPI.downloadtemplate().then((response: any) => {
+    const fileData = response.data;
+    const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
+    const fileType =
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
+
+    const blob = new Blob([fileData], { type: fileType });
+    const downloadUrl = window.URL.createObjectURL(blob);
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = downloadUrl;
+    downloadLink.download = fileName;
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+
+    document.body.removeChild(downloadLink);
+    window.URL.revokeObjectURL(downloadUrl);
+  });
 };
 onMounted(() => {
   handleResetQuery();

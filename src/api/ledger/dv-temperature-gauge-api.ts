@@ -1,4 +1,5 @@
 import request from "@/utils/request";
+import { blob } from "stream/consumers";
 
 const DVTEMPERATUREGAUGE_BASE_URL = "/api/v1/dv-temperature-gauge";
 
@@ -60,6 +61,39 @@ const DvTemperatureGaugeAPI = {
     return request({
       url: `${DVTEMPERATUREGAUGE_BASE_URL}/${ids}`,
       method: "delete",
+    });
+  },
+
+  /**
+   * 温度表导出
+   *
+   * @param queryParams 查询参数
+   */
+  export(queryParams: any) {
+    return request({
+      url: `${DVTEMPERATUREGAUGE_BASE_URL}/export`,
+      method: "get",
+      params: queryParams,
+      responseType: "blob",
+    });
+  },
+  downloadtemplate() {
+    return request({
+      url: `${DVTEMPERATUREGAUGE_BASE_URL}/template`,
+      method: "get",
+      responseType: "blob",
+    });
+  },
+  importFile(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<any, ExcelResult>({
+      url: `${DVTEMPERATUREGAUGE_BASE_URL}/import`,
+      method: "post",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
   },
 };

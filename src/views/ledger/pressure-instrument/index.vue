@@ -218,8 +218,6 @@ function handleOpenImportDialog() {
 
 // 导出用户
 function handleExport() {
-  console.log(queryParams);
-
   DvPressureInstrumentAPI.export({
     pressureTag: queryParams.pressureTag as string,
     pressureDevice: queryParams.pressureDevice as string,
