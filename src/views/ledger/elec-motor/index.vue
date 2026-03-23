@@ -36,24 +36,30 @@
     </div>
 
     <el-card shadow="never">
-      <div class="mb-10px">
-        <el-button
-          v-hasPerm="['ledger:elec-motor:add']"
-          type="success"
-          icon="plus"
-          @click="handleOpenDialog()"
-        >
-          新增
-        </el-button>
-        <el-button
-          v-hasPerm="['ledger:elec-motor:delete']"
-          type="danger"
-          :disabled="removeIds.length === 0"
-          icon="delete"
-          @click="handleDelete()"
-        >
-          删除
-        </el-button>
+      <div class="data-table__toolbar">
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['ledger:elec-motor:add']"
+            type="success"
+            icon="plus"
+            @click="handleOpenDialog()"
+          >
+            新增
+          </el-button>
+        </div>
+        <div class="data-table__toolbar--tools">
+          <el-button
+            v-hasPerm="'ledger:elec-motor:add'"
+            icon="upload"
+            @click="handleOpenImportDialog"
+          >
+            导入
+          </el-button>
+
+          <el-button v-hasPerm="'ledger:elec-motor:delete'" icon="download" @click="handleExport">
+            导出
+          </el-button>
+        </div>
       </div>
 
       <el-table
@@ -64,7 +70,6 @@
         border
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="55" align="center" />
         <el-table-column
           key="elecMotorTag"
           label="位号"
@@ -213,7 +218,7 @@
               size="small"
               link
               icon="edit"
-              @click="handleOpenDialog(scope.row.id)"
+              @click="handleOpenDialog(scope.row.elecMotorId)"
             >
               编辑
             </el-button>
@@ -241,13 +246,18 @@
     </el-card>
 
     <!-- 电器电动机表单弹窗 -->
-    <el-dialog
+    <el-drawer
       v-model="dialog.visible"
-      :title="dialog.title"
-      width="500px"
-      @close="handleCloseDialog"
+      :close-on-click-modal="false"
+      :modal="true"
+      :resizable="true"
+      :size="'50%'"
+      :with-header="false"
     >
       <el-form ref="dataFormRef" :model="formData" :rules="rules" label-width="100px">
+        <el-form-item v-show="false" abel="id" prop="elecMotorId">
+          <el-input v-model="formData.elecMotorId" placeholder="id"></el-input>
+        </el-form-item>
         <el-form-item label="位号" prop="elecMotorTag">
           <el-input v-model="formData.elecMotorTag" placeholder="位号" />
         </el-form-item>
@@ -339,7 +349,8 @@
           <el-button @click="handleCloseDialog()">取消</el-button>
         </div>
       </template>
-    </el-dialog>
+    </el-drawer>
+    <import-data v-model="importVisible"></import-data>
   </div>
 </template>
 
@@ -354,14 +365,14 @@ import ElecMotorAPI, {
   ElecMotorForm,
   ElecMotorPageQuery,
 } from "@/api/ledger/elec-motor-api";
-
+import importData from "./import-data.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
 
 const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
-
+const importVisible = ref(false);
 const queryParams = reactive<ElecMotorPageQuery>({
   pageNum: 1,
   pageSize: 10,
@@ -417,6 +428,7 @@ function handleSelectionChange(selection: any) {
 /** 打开电器电动机弹窗 */
 function handleOpenDialog(id?: number) {
   dialog.visible = true;
+  console.log(id);
   if (id) {
     dialog.title = "修改电器电动机";
     ElecMotorAPI.getFormData(id).then((data) => {
@@ -432,9 +444,9 @@ function handleSubmit() {
   dataFormRef.value.validate((valid: any) => {
     if (valid) {
       loading.value = true;
-      const id = formData.id;
+      const id = formData.elecMotorId;
       if (id) {
-        ElecMotorAPI.update(id, formData)
+        ElecMotorAPI.update(id.toString(), formData)
           .then(() => {
             ElMessage.success("修改成功");
             handleCloseDialog();
@@ -459,7 +471,7 @@ function handleCloseDialog() {
   dialog.visible = false;
   dataFormRef.value.resetFields();
   dataFormRef.value.clearValidate();
-  formData.id = undefined;
+  formData.elecMotorId = undefined;
 }
 
 /** 删除电器电动机 */
@@ -493,4 +505,32 @@ function handleDelete(id?: number) {
 onMounted(() => {
   handleQuery();
 });
+const handleOpenImportDialog = () => {
+  importVisible.value = true;
+};
+const handleExport = () => {
+  ElecMotorAPI.export({
+    elecMotorTag: queryParams.elecMotorTag as string,
+    elecMotorProdDate: queryParams.elecMotorProdDate as [string, string],
+    elecMotorManufacturer: queryParams.elecMotorManufacturer as string,
+  }).then((response: any) => {
+    const fileData = response.data;
+    const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
+    const fileType =
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
+
+    const blob = new Blob([fileData], { type: fileType });
+    const downloadUrl = window.URL.createObjectURL(blob);
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = downloadUrl;
+    downloadLink.download = fileName;
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+
+    document.body.removeChild(downloadLink);
+    window.URL.revokeObjectURL(downloadUrl);
+  });
+};
 </script>

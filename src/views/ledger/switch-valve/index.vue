@@ -76,19 +76,21 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column
-          key="switchValveDevice"
-          label="装置名称"
-          prop="switchValveDevice"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
           key="switchValveTag"
           label="位号"
           prop="switchValveTag"
           min-width="150"
           align="center"
         />
+
+        <el-table-column
+          key="switchValveDevice"
+          label="装置名称"
+          prop="switchValveDevice"
+          min-width="150"
+          align="center"
+        />
+
         <el-table-column label="设备状态" width="150" align="center">
           <template #default="scope">
             <DictLabel v-model="scope.row.status" code="status" />

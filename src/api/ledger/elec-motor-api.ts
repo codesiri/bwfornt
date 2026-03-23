@@ -62,6 +62,43 @@ const ElecMotorAPI = {
       method: "delete",
     });
   },
+  /**
+   * 表导出
+   *
+   * @param queryParams 查询参数
+   */
+  export(queryParams: any) {
+    return request({
+      url: `${ELECMOTOR_BASE_URL}/export`,
+      method: "get",
+      params: queryParams,
+      responseType: "blob",
+    });
+  },
+  /**
+   * 导入表
+   *
+   * @param file 导入文件
+   */
+  import(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<any, ExcelResult>({
+      url: `${ELECMOTOR_BASE_URL}/import`,
+      method: "post",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  downloadtemplate() {
+    return request({
+      url: `${ELECMOTOR_BASE_URL}/template`,
+      method: "get",
+      responseType: "blob",
+    });
+  },
 };
 
 export default ElecMotorAPI;
@@ -78,6 +115,7 @@ export interface ElecMotorPageQuery extends PageQuery {
 
 /** 电器电动机表单对象 */
 export interface ElecMotorForm {
+  elecMotorId?: number;
   /** 位号 */
   elecMotorTag?: string;
   /** 工艺名称 */
@@ -122,6 +160,7 @@ export interface ElecMotorForm {
 
 /** 电器电动机分页对象 */
 export interface ElecMotorPageVO {
+  elecMotorId: string;
   /** 位号 */
   elecMotorTag?: string;
   /** 工艺名称 */

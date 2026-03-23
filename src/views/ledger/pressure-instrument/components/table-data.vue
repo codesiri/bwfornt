@@ -8,15 +8,6 @@
     border
     @selection-change="handleSelectionChange"
   >
-    <el-table-column type="selection" width="55" align="center" />
-
-    <el-table-column
-      key="pressureDevice"
-      label="装置名称"
-      prop="pressureDevice"
-      min-width="150"
-      align="center"
-    />
     <el-table-column
       key="pressureTag"
       label="位号"
@@ -24,6 +15,14 @@
       min-width="150"
       align="center"
     />
+    <el-table-column
+      key="pressureDevice"
+      label="装置名称"
+      prop="pressureDevice"
+      min-width="150"
+      align="center"
+    />
+
     <el-table-column
       key="pressureLocation"
       label="安装位置以及用途"

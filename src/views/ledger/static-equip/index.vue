@@ -37,24 +37,34 @@
     </div>
 
     <el-card shadow="never">
-      <div class="mb-10px">
-        <el-button
-          v-hasPerm="['ledger:static-equip:add']"
-          type="success"
-          icon="plus"
-          @click="handleOpenDialog()"
-        >
-          新增
-        </el-button>
-        <el-button
-          v-hasPerm="['ledger:static-equip:delete']"
-          type="danger"
-          :disabled="removeIds.length === 0"
-          icon="delete"
-          @click="handleDelete()"
-        >
-          删除
-        </el-button>
+      <div class="data-table__toolbar">
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['ledger:static-equip:add']"
+            type="success"
+            icon="plus"
+            @click="handleOpenDialog()"
+          >
+            新增
+          </el-button>
+        </div>
+        <div class="data-table__toolbar--tools">
+          <el-button
+            v-hasPerm="'ledger:pressure-instrument:import'"
+            icon="upload"
+            @click="handleOpenImportDialog"
+          >
+            导入
+          </el-button>
+
+          <el-button
+            v-hasPerm="'ledger:pressure-instrument:export'"
+            icon="download"
+            @click="handleExport"
+          >
+            导出
+          </el-button>
+        </div>
       </div>
 
       <el-table
@@ -65,7 +75,6 @@
         border
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="55" align="center" />
         <el-table-column
           key="staticEquipName"
           label="设备名称"
@@ -200,12 +209,11 @@
       :with-header="false"
     >
       <el-form ref="dataFormRef" :model="formData" :rules="rules" label-width="100px">
-        <el-form-item label="设备名称" prop="staticEquipName">
-          <el-input v-model="formData.staticEquipName" placeholder="设备名称" />
-        </el-form-item>
-
         <el-form-item label="位号" prop="staticEquipTag">
           <el-input v-model="formData.staticEquipTag" placeholder="位号" />
+        </el-form-item>
+        <el-form-item label="设备名称" prop="staticEquipName">
+          <el-input v-model="formData.staticEquipName" placeholder="设备名称" />
         </el-form-item>
 
         <el-form-item label="所处位置" prop="staticEquipLoc">
@@ -438,4 +446,6 @@ function handleDelete(id?: number) {
 onMounted(() => {
   handleQuery();
 });
+const handleExport = () => {};
+const handleOpenImportDialog = () => {};
 </script>
