@@ -2,34 +2,10 @@
   <div class="app-container">
     <div class="search-container">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
-        <el-form-item label="备件名称" prop="ecspPartName">
-          <el-input
-            v-model="queryParams.ecspPartName"
-            placeholder="备件名称"
-            clearable
-            @keyup.enter="handleQuery()"
-          />
-        </el-form-item>
-        <el-form-item label="规格型号" prop="ecspSpecModel">
-          <el-input
-            v-model="queryParams.ecspSpecModel"
-            placeholder="规格型号"
-            clearable
-            @keyup.enter="handleQuery()"
-          />
-        </el-form-item>
-        <el-form-item label="生产厂家" prop="ecspManufacturer">
-          <el-input
-            v-model="queryParams.ecspManufacturer"
-            placeholder="生产厂家"
-            clearable
-            @keyup.enter="handleQuery()"
-          />
-        </el-form-item>
-        <el-form-item label="入库日期" prop="ecspStockDate">
+        <el-form-item label="故障日期" prop="ecfFaultDate">
           <el-date-picker
-            v-model="queryParams.ecspStockDate"
             class="!w-[240px]"
+            v-model="queryParams.ecfFaultDate"
             type="daterange"
             range-separator="~"
             start-placeholder="开始时间"
@@ -37,9 +13,36 @@
             value-format="YYYY-MM-DD"
           />
         </el-form-item>
-        <el-form-item label="领用日期" prop="ecspUsedDate">
+        <el-form-item label="故障发生时间" prop="ecfFaultTime">
           <el-date-picker
-            v-model="queryParams.ecspUsedDate"
+            class="!w-[240px]"
+            v-model="queryParams.ecfFaultTime"
+            type="daterange"
+            range-separator="~"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            value-format="YYYY-MM-DD"
+          />
+        </el-form-item>
+        <el-form-item label="故障柜体 / 抽屉编号" prop="ecfFaultCabinet">
+          <el-input
+            v-model="queryParams.ecfFaultCabinet"
+            placeholder="故障柜体 / 抽屉编号"
+            clearable
+            @keyup.enter="handleQuery()"
+          />
+        </el-form-item>
+        <el-form-item label="维修人员" prop="ecfRepairPerson">
+          <el-input
+            v-model="queryParams.ecfRepairPerson"
+            placeholder="维修人员"
+            clearable
+            @keyup.enter="handleQuery()"
+          />
+        </el-form-item>
+        <el-form-item label="维修完成时间" prop="ecfRepairCompleteTime">
+          <el-date-picker
+            v-model="queryParams.ecfRepairCompleteTime"
             type="daterange"
             range-separator="~"
             start-placeholder="开始时间"
@@ -47,17 +50,35 @@
             value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
-        <el-form-item label="领用人" prop="ecspUser">
+        <el-form-item label="	恢复运行时间" prop="ecfRecoverTime">
+          <el-date-picker
+            v-model="queryParams.ecfRecoverTime"
+            type="daterange"
+            range-separator="~"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+          />
+        </el-form-item>
+        <el-form-item label="验收人" prop="ecfChecker">
           <el-input
-            v-model="queryParams.ecspUser"
-            placeholder="领用人"
+            v-model="queryParams.ecfChecker"
+            placeholder="验收人"
             clearable
             @keyup.enter="handleQuery()"
           />
         </el-form-item>
-        <el-form-item label="所属工厂" prop="ecspFactory">
+        <el-form-item label="故障分类" prop="ecfFaultType">
           <el-input
-            v-model="queryParams.ecspFactory"
+            v-model="queryParams.ecfFaultType"
+            placeholder="故障分类"
+            clearable
+            @keyup.enter="handleQuery()"
+          />
+        </el-form-item>
+        <el-form-item label="所属工厂" prop="ecfFactory">
+          <el-input
+            v-model="queryParams.ecfFactory"
             placeholder="所属工厂"
             clearable
             @keyup.enter="handleQuery()"
@@ -73,7 +94,7 @@
     <el-card shadow="never">
       <div class="data-table__toolbar">
         <el-button
-          v-hasPerm="['ledger:electric-cabinet-spare-part:add']"
+          v-hasPerm="['ledger:electric-cabinet-fault:add']"
           type="success"
           icon="plus"
           @click="handleOpenDialog()"
@@ -94,7 +115,6 @@
           </el-button>
         </div>
       </div>
-
       <el-table
         ref="dataTableRef"
         v-loading="loading"
@@ -104,100 +124,107 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column
-          key="ecspPartName"
-          label="备件名称"
-          prop="ecspPartName"
+          key="ecfFaultDate"
+          label="故障日期"
+          prop="ecfFaultDate"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspSpecModel"
-          label="规格型号"
-          prop="ecspSpecModel"
+          key="ecfFaultTime"
+          label="故障发生时间"
+          prop="ecfFaultTime"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspCorrespondingCabinet"
-          label="对应柜体 / 抽屉"
-          prop="ecspCorrespondingCabinet"
+          key="ecfFaultCabinet"
+          label="故障柜体 / 抽屉编号"
+          prop="ecfFaultCabinet"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspRatedParameters"
-          label="额定参数"
-          prop="ecspRatedParameters"
+          key="ecfFaultPhenomenon"
+          label="故障现象"
+          prop="ecfFaultPhenomenon"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspManufacturer"
-          label="生产厂家"
-          prop="ecspManufacturer"
+          key="ecfFaultReason"
+          label="故障原因分析"
+          prop="ecfFaultReason"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspStockQuantity"
-          label="库存数量"
-          prop="ecspStockQuantity"
+          key="ecfRepairPerson"
+          label="维修人员"
+          prop="ecfRepairPerson"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspStockDate"
-          label="入库日期"
-          prop="ecspStockDate"
+          key="ecfRepairScheme"
+          label="维修方案"
+          prop="ecfRepairScheme"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspUsedQuantity"
-          label="领用数量"
-          prop="ecspUsedQuantity"
+          key="ecfReplaceComponent"
+          label="更换元器件"
+          prop="ecfReplaceComponent"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspUsedDate"
-          label="领用日期"
-          prop="ecspUsedDate"
+          key="ecfRepairCompleteTime"
+          label="维修完成时间"
+          prop="ecfRepairCompleteTime"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspUsedReason"
-          label="领用原因"
-          prop="ecspUsedReason"
+          key="ecfRecoverTime"
+          label="	恢复运行时间"
+          prop="ecfRecoverTime"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspUser"
-          label="领用人"
-          prop="ecspUser"
+          key="ecfRepairResult"
+          label="维修结果"
+          prop="ecfRepairResult"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspSupplementDate"
-          label="补充日期"
-          prop="ecspSupplementDate"
+          key="ecfChecker"
+          label="验收人"
+          prop="ecfChecker"
           min-width="150"
           align="center"
         />
         <el-table-column
-          key="ecspFactory"
+          key="ecfFaultType"
+          label="故障分类"
+          prop="ecfFaultType"
+          min-width="150"
+          align="center"
+        />
+        <el-table-column
+          key="ecfFactory"
           label="所属工厂"
-          prop="ecspFactory"
+          prop="ecfFactory"
           min-width="150"
           align="center"
         />
         <el-table-column fixed="right" label="操作" width="220">
           <template #default="scope">
             <el-button
-              v-hasPerm="['ledger:electric-cabinet-spare-part:edit']"
+              v-hasPerm="['ledger:electric-cabinet-fault:edit']"
               type="primary"
               size="small"
               link
@@ -207,7 +234,7 @@
               编辑
             </el-button>
             <el-button
-              v-hasPerm="['ledger:electric-cabinet-spare-part:delete']"
+              v-hasPerm="['ledger:electric-cabinet-fault:delete']"
               type="danger"
               size="small"
               link
@@ -229,7 +256,7 @@
       />
     </el-card>
 
-    <!-- 电器备品备件管理记录表单弹窗 -->
+    <!-- 抽屉柜故障维修记录表单弹窗 -->
     <el-drawer
       v-model="dialog.visible"
       :close-on-click-modal="false"
@@ -239,74 +266,82 @@
       :with-header="false"
     >
       <el-form ref="dataFormRef" :model="formData" :rules="rules" label-width="100px">
-
-        <el-form-item label="备件名称" prop="ecspPartName">
-          <el-input v-model="formData.ecspPartName" placeholder="备件名称" />
-        </el-form-item>
-
-        <el-form-item label="规格型号" prop="ecspSpecModel">
-          <el-input v-model="formData.ecspSpecModel" placeholder="规格型号" />
-        </el-form-item>
-
-        <el-form-item label="对应柜体 / 抽屉" prop="ecspCorrespondingCabinet">
-          <el-input v-model="formData.ecspCorrespondingCabinet" placeholder="对应柜体 / 抽屉" />
-        </el-form-item>
-
-        <el-form-item label="额定参数" prop="ecspRatedParameters">
-          <el-input v-model="formData.ecspRatedParameters" placeholder="额定参数" />
-        </el-form-item>
-
-        <el-form-item label="生产厂家" prop="ecspManufacturer">
-          <el-input v-model="formData.ecspManufacturer" placeholder="生产厂家" />
-        </el-form-item>
-
-        <el-form-item label="库存数量" prop="ecspStockQuantity">
-          <el-input v-model="formData.ecspStockQuantity" placeholder="库存数量" />
-        </el-form-item>
-
-        <el-form-item label="入库日期" prop="ecspStockDate">
+        <el-form-item label="故障日期" prop="ecfFaultDate">
           <el-date-picker
-            v-model="formData.ecspStockDate"
             class="!w-[240px]"
+            v-model="formData.ecfFaultDate"
             type="date"
-            placeholder="入库日期"
+            placeholder="故障日期"
             value-format="YYYY-MM-DD"
           />
         </el-form-item>
 
-        <el-form-item label="领用数量" prop="ecspUsedQuantity">
-          <el-input v-model="formData.ecspUsedQuantity" placeholder="领用数量" />
+        <el-form-item label="故障发生时间" prop="ecfFaultTime">
+          <el-date-picker
+            class="!w-[240px]"
+            v-model="formData.ecfFaultTime"
+            type="date"
+            placeholder="故障发生时间"
+            value-format="YYYY-MM-DD"
+          />
         </el-form-item>
 
-        <el-form-item label="领用日期" prop="ecspUsedDate">
+        <el-form-item label="故障柜体 / 抽屉编号" prop="ecfFaultCabinet">
+          <el-input v-model="formData.ecfFaultCabinet" placeholder="故障柜体 / 抽屉编号" />
+        </el-form-item>
+
+        <el-form-item label="故障现象" prop="ecfFaultPhenomenon">
+          <el-input v-model="formData.ecfFaultPhenomenon" placeholder="故障现象" />
+        </el-form-item>
+
+        <el-form-item label="故障原因分析" prop="ecfFaultReason">
+          <el-input v-model="formData.ecfFaultReason" placeholder="故障原因分析" />
+        </el-form-item>
+
+        <el-form-item label="维修人员" prop="ecfRepairPerson">
+          <el-input v-model="formData.ecfRepairPerson" placeholder="维修人员" />
+        </el-form-item>
+
+        <el-form-item label="维修方案" prop="ecfRepairScheme">
+          <el-input v-model="formData.ecfRepairScheme" placeholder="维修方案" />
+        </el-form-item>
+
+        <el-form-item label="更换元器件" prop="ecfReplaceComponent">
+          <el-input v-model="formData.ecfReplaceComponent" placeholder="更换元器件" />
+        </el-form-item>
+
+        <el-form-item label="维修完成时间" prop="ecfRepairCompleteTime">
           <el-date-picker
-            v-model="formData.ecspUsedDate"
+            v-model="formData.ecfRepairCompleteTime"
             type="datetime"
-            placeholder="领用日期"
+            placeholder="维修完成时间"
             value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
 
-        <el-form-item label="领用原因" prop="ecspUsedReason">
-          <el-input v-model="formData.ecspUsedReason" placeholder="领用原因" />
-        </el-form-item>
-
-        <el-form-item label="领用人" prop="ecspUser">
-          <el-input v-model="formData.ecspUser" placeholder="领用人" />
-        </el-form-item>
-
-        <el-form-item label="补充日期" prop="ecspSupplementDate">
+        <el-form-item label="	恢复运行时间" prop="ecfRecoverTime">
           <el-date-picker
-            v-model="formData.ecspSupplementDate"
-            class="!w-[240px]"
-            type="date"
-            placeholder="补充日期"
-            value-format="YYYY-MM-DD"
+            v-model="formData.ecfRecoverTime"
+            type="datetime"
+            placeholder="	恢复运行时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
 
-        <el-form-item label="所属工厂" prop="ecspFactory">
-          <el-input v-model="formData.ecspFactory" placeholder="所属工厂" />
+        <el-form-item label="维修结果" prop="ecfRepairResult">
+          <el-input v-model="formData.ecfRepairResult" placeholder="维修结果" />
+        </el-form-item>
+
+        <el-form-item label="验收人" prop="ecfChecker">
+          <el-input v-model="formData.ecfChecker" placeholder="验收人" />
+        </el-form-item>
+
+        <el-form-item label="故障分类" prop="ecfFaultType">
+          <el-input v-model="formData.ecfFaultType" placeholder="故障分类" />
+        </el-form-item>
+
+        <el-form-item label="所属工厂" prop="ecfFactory">
+          <el-input v-model="formData.ecfFactory" placeholder="所属工厂" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -316,21 +351,21 @@
         </div>
       </template>
     </el-drawer>
-    <import-data v-model="importDialogVisible"/>
+    <import-data v-model="importDialogVisible" />
   </div>
 </template>
 
 <script setup lang="ts">
 defineOptions({
-  name: "ElectricCabinetSparePart",
+  name: "ElectricCabinetFault",
   inheritAttrs: false,
 });
 
-import ElectricCabinetSparePartAPI, {
-  ElectricCabinetSparePartPageVO,
-  ElectricCabinetSparePartForm,
-  ElectricCabinetSparePartPageQuery,
-} from "@/api/ledger/electric-cabinet-spare-part-api";
+import ElectricCabinetFaultAPI, {
+  ElectricCabinetFaultPageVO,
+  ElectricCabinetFaultForm,
+  ElectricCabinetFaultPageQuery,
+} from "@/api/ledger/electric-cabinet-fault-api";
 import importData from "./import-data.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -339,13 +374,13 @@ const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
 
-const queryParams = reactive<ElectricCabinetSparePartPageQuery>({
+const queryParams = reactive<ElectricCabinetFaultPageQuery>({
   pageNum: 1,
   pageSize: 10,
 });
 
-// 电器备品备件管理记录表格数据
-const pageData = ref<ElectricCabinetSparePartPageVO[]>([]);
+// 抽屉柜故障维修记录表格数据
+const pageData = ref<ElectricCabinetFaultPageVO[]>([]);
 
 // 弹窗
 const dialog = reactive({
@@ -353,23 +388,24 @@ const dialog = reactive({
   visible: false,
 });
 
-// 电器备品备件管理记录表单数据
-const formData = reactive<ElectricCabinetSparePartForm>({});
+// 抽屉柜故障维修记录表单数据
+const formData = reactive<ElectricCabinetFaultForm>({});
 
-// 电器备品备件管理记录表单校验规则
+// 抽屉柜故障维修记录表单校验规则
 const rules = reactive({
   id: [{ required: true, message: "请输入序号", trigger: "blur" }],
-  ecspPartName: [{ required: true, message: "请输入备件名称", trigger: "blur" }],
-  ecspSpecModel: [{ required: true, message: "请输入规格型号", trigger: "blur" }],
-  ecspStockQuantity: [{ required: true, message: "请输入库存数量", trigger: "blur" }],
-  ecspStockDate: [{ required: true, message: "请输入入库日期", trigger: "blur" }],
-  ecspFactory: [{ required: true, message: "请输入所属工厂", trigger: "blur" }],
+  ecfFaultDate: [{ required: true, message: "请输入故障日期", trigger: "blur" }],
+  ecfFaultTime: [{ required: true, message: "请输入故障发生时间", trigger: "blur" }],
+  ecfFaultCabinet: [{ required: true, message: "请输入故障柜体 / 抽屉编号", trigger: "blur" }],
+  ecfFaultPhenomenon: [{ required: true, message: "请输入故障现象", trigger: "blur" }],
+  ecfRepairPerson: [{ required: true, message: "请输入维修人员", trigger: "blur" }],
+  ecfRepairResult: [{ required: true, message: "请输入维修结果", trigger: "blur" }],
 });
 
-/** 查询电器备品备件管理记录 */
+/** 查询抽屉柜故障维修记录 */
 function handleQuery() {
   loading.value = true;
-  ElectricCabinetSparePartAPI.getPage(queryParams)
+  ElectricCabinetFaultAPI.getPage(queryParams)
     .then((data) => {
       pageData.value = data.list;
       total.value = data.total;
@@ -379,7 +415,7 @@ function handleQuery() {
     });
 }
 
-/** 重置电器备品备件管理记录查询 */
+/** 重置抽屉柜故障维修记录查询 */
 function handleResetQuery() {
   queryFormRef.value!.resetFields();
   queryParams.pageNum = 1;
@@ -391,27 +427,27 @@ function handleSelectionChange(selection: any) {
   removeIds.value = selection.map((item: any) => item.id);
 }
 
-/** 打开电器备品备件管理记录弹窗 */
+/** 打开抽屉柜故障维修记录弹窗 */
 function handleOpenDialog(id?: number) {
   dialog.visible = true;
   if (id) {
-    dialog.title = "修改电器备品备件管理记录";
-    ElectricCabinetSparePartAPI.getFormData(id).then((data) => {
+    dialog.title = "修改抽屉柜故障维修记录";
+    ElectricCabinetFaultAPI.getFormData(id).then((data) => {
       Object.assign(formData, data);
     });
   } else {
-    dialog.title = "新增电器备品备件管理记录";
+    dialog.title = "新增抽屉柜故障维修记录";
   }
 }
 
-/** 提交电器备品备件管理记录表单 */
+/** 提交抽屉柜故障维修记录表单 */
 function handleSubmit() {
   dataFormRef.value.validate((valid: any) => {
     if (valid) {
       loading.value = true;
       const id = formData.id;
       if (id) {
-        ElectricCabinetSparePartAPI.update(id.toString(), formData)
+        ElectricCabinetFaultAPI.update(id.toString(), formData)
           .then(() => {
             ElMessage.success("修改成功");
             handleCloseDialog();
@@ -419,7 +455,7 @@ function handleSubmit() {
           })
           .finally(() => (loading.value = false));
       } else {
-        ElectricCabinetSparePartAPI.create(formData)
+        ElectricCabinetFaultAPI.create(formData)
           .then(() => {
             ElMessage.success("新增成功");
             handleCloseDialog();
@@ -431,7 +467,7 @@ function handleSubmit() {
   });
 }
 
-/** 关闭电器备品备件管理记录弹窗 */
+/** 关闭抽屉柜故障维修记录弹窗 */
 function handleCloseDialog() {
   dialog.visible = false;
   dataFormRef.value.resetFields();
@@ -439,7 +475,7 @@ function handleCloseDialog() {
   formData.id = undefined;
 }
 
-/** 删除电器备品备件管理记录 */
+/** 删除抽屉柜故障维修记录 */
 function handleDelete(id?: number) {
   const ids = [id || removeIds.value].join(",");
   if (!ids) {
@@ -454,7 +490,7 @@ function handleDelete(id?: number) {
   }).then(
     () => {
       loading.value = true;
-      ElectricCabinetSparePartAPI.deleteByIds(ids)
+      ElectricCabinetFaultAPI.deleteByIds(ids)
         .then(() => {
           ElMessage.success("删除成功");
           handleResetQuery();
@@ -466,15 +502,20 @@ function handleDelete(id?: number) {
     }
   );
 }
+const handleOpenImportDialog = () => {
+  importDialogVisible.value = true;
+};
 const handleExport = () => {
-  ElectricCabinetSparePartAPI.export({
-    ecspPartName: queryParams.ecspPartName,
-    ecspSpecModel: queryParams.ecspSpecModel,
-    ecspManufacturer: queryParams.ecspManufacturer,
-    ecspStockDate: queryParams.ecspStockDate,
-    ecspUsedDate: queryParams.ecspUsedDate,
-    ecspUser: queryParams.ecspUser,
-    ecspFactory: queryParams.ecspFactory,
+  ElectricCabinetFaultAPI.export({
+    ecfFaultDate: queryParams.ecfFaultDate,
+    ecfFaultTime: queryParams.ecfFaultTime,
+    ecfFaultCabinet: queryParams.ecfFaultCabinet,
+    ecfRepairPerson: queryParams.ecfRepairPerson,
+    ecfRepairCompleteTime: queryParams.ecfRepairCompleteTime,
+    ecfRecoverTime: queryParams.ecfRecoverTime,
+    ecfChecker: queryParams.ecfChecker,
+    ecfFaultType: queryParams.ecfFaultType,
+    ecfFactory: queryParams.ecfFactory,
   }).then((response) => {
     const fileData = response.data;
     const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
@@ -494,9 +535,6 @@ const handleExport = () => {
     document.body.removeChild(downloadLink);
     window.URL.revokeObjectURL(downloadUrl);
   });
-};
-const handleOpenImportDialog = () => {
-  importDialogVisible.value = true;
 };
 onMounted(() => {
   handleQuery();

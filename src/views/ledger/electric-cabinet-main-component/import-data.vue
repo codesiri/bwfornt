@@ -91,7 +91,7 @@
 import { ElMessage, type UploadUserFile } from "element-plus";
 
 import { ApiCodeEnum } from "@/enums/api/code-enum";
-import ElectricCabinetInspectionAPI from "@/api/ledger/electric-cabinet-inspection-api";
+import ElectricCabinetMainComponentAPI from "@/api/ledger/electric-cabinet-main-component-api";
 
 const emit = defineEmits(["import-success"]);
 const visible = defineModel("modelValue", {
@@ -134,7 +134,7 @@ const handleFileExceed = () => {
 
 // 下载导入模板
 const handleDownloadTemplate = () => {
-  ElectricCabinetInspectionAPI.downloadtemplate().then((response: any) => {
+  ElectricCabinetMainComponentAPI.downloadtemplate().then((response: any) => {
     const fileData = response.data;
     const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
     const fileType =
@@ -163,7 +163,9 @@ const handleUpload = async () => {
   }
 
   try {
-    const result = await ElectricCabinetInspectionAPI.import(importFormData.files[0].raw as File);
+    const result = await ElectricCabinetMainComponentAPI.import(
+      importFormData.files[0].raw as File
+    );
     if (result.code === ApiCodeEnum.SUCCESS && result.invalidCount === 0) {
       ElMessage.success("导入成功，导入数据：" + result.validCount + "条");
       emit("import-success");

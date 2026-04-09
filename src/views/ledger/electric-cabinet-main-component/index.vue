@@ -34,7 +34,7 @@
     </div>
 
     <el-card shadow="never">
-      <div class="mb-10px">
+      <div class="data-table__toolbar">
         <el-button
           v-hasPerm="['ledger:electric-cabinet-main-component:add']"
           type="success"
@@ -43,15 +43,19 @@
         >
           新增
         </el-button>
-        <el-button
-          v-hasPerm="['ledger:electric-cabinet-main-component:delete']"
-          type="danger"
-          :disabled="removeIds.length === 0"
-          icon="delete"
-          @click="handleDelete()"
-        >
-          删除
-        </el-button>
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="'ledger:elec-motor:add'"
+            icon="upload"
+            @click="handleOpenImportDialog"
+          >
+            导入
+          </el-button>
+
+          <el-button v-hasPerm="'ledger:elec-motor:delete'" icon="download" @click="handleExport">
+            导出
+          </el-button>
+        </div>
       </div>
 
       <el-table
@@ -62,8 +66,6 @@
         border
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="55" align="center" />
-        <el-table-column key="id" label="序号" prop="id" min-width="150" align="center" />
         <el-table-column
           key="ecmComponentName"
           label="元器件名称"
@@ -120,27 +122,6 @@
           min-width="150"
           align="center"
         />
-        <el-table-column
-          key="ecmReserve1"
-          label="备用1"
-          prop="ecmReserve1"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="ecmReserve2"
-          label="备用2"
-          prop="ecmReserve2"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="ecmReserve3"
-          label="备用3"
-          prop="ecmReserve3"
-          min-width="150"
-          align="center"
-        />
         <el-table-column fixed="right" label="操作" width="220">
           <template #default="scope">
             <el-button
@@ -177,17 +158,15 @@
     </el-card>
 
     <!-- 抽屉柜主要元器件信息表单弹窗 -->
-    <el-dialog
+    <el-drawer
       v-model="dialog.visible"
-      :title="dialog.title"
-      width="500px"
-      @close="handleCloseDialog"
+      :close-on-click-modal="false"
+      :modal="true"
+      :resizable="true"
+      :size="'50%'"
+      :with-header="false"
     >
       <el-form ref="dataFormRef" :model="formData" :rules="rules" label-width="100px">
-        <el-form-item label="序号" prop="id">
-          <el-input v-model="formData.id" placeholder="序号" />
-        </el-form-item>
-
         <el-form-item label="元器件名称" prop="ecmComponentName">
           <el-input v-model="formData.ecmComponentName" placeholder="元器件名称" />
         </el-form-item>
@@ -225,18 +204,6 @@
         <el-form-item label="所属工厂" prop="ecmFactory">
           <el-input v-model="formData.ecmFactory" placeholder="所属工厂" />
         </el-form-item>
-
-        <el-form-item label="备用1" prop="ecmReserve1">
-          <el-input v-model="formData.ecmReserve1" placeholder="备用1" />
-        </el-form-item>
-
-        <el-form-item label="备用2" prop="ecmReserve2">
-          <el-input v-model="formData.ecmReserve2" placeholder="备用2" />
-        </el-form-item>
-
-        <el-form-item label="备用3" prop="ecmReserve3">
-          <el-input v-model="formData.ecmReserve3" placeholder="备用3" />
-        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -244,7 +211,8 @@
           <el-button @click="handleCloseDialog()">取消</el-button>
         </div>
       </template>
-    </el-dialog>
+    </el-drawer>
+    <import-data v-model="importDialogVisible" />
   </div>
 </template>
 
@@ -259,10 +227,11 @@ import ElectricCabinetMainComponentAPI, {
   ElectricCabinetMainComponentForm,
   ElectricCabinetMainComponentPageQuery,
 } from "@/api/ledger/electric-cabinet-main-component-api";
+import ImportData from "./import-data.vue";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
-
+const importDialogVisible = ref(false);
 const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
@@ -393,4 +362,32 @@ function handleDelete(id?: number) {
 onMounted(() => {
   handleQuery();
 });
+const handleOpenImportDialog = () => {
+  importDialogVisible.value = true;
+};
+const handleExport = () => {
+  ElectricCabinetMainComponentAPI.export({
+    ecmComponentName: queryParams.ecmComponentName,
+    ecmManufacturer: queryParams.ecmManufacturer,
+    ecmFactoryNo: queryParams.ecmFactoryNo,
+  }).then((response) => {
+    const fileData = response.data;
+    const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
+    const fileType =
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
+
+    const blob = new Blob([fileData], { type: fileType });
+    const downloadUrl = window.URL.createObjectURL(blob);
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = downloadUrl;
+    downloadLink.download = fileName;
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+
+    document.body.removeChild(downloadLink);
+    window.URL.revokeObjectURL(downloadUrl);
+  });
+};
 </script>

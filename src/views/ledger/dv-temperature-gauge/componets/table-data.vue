@@ -117,9 +117,9 @@
           size="small"
           link
           icon="edit"
-          @click="detailDv(scope)"
+          @click="repairDv(scope)"
         >
-          详情
+          报修
         </el-button>
         <el-button
           v-hasPerm="['ledger:dv-temperature-gauge:edit']"
@@ -160,7 +160,7 @@ const loading = defineModel<boolean>("loading", {
   required: true,
 });
 
-const emit = defineEmits(["handleSelectionChange", "edit", "detail", "delete"]);
+const emit = defineEmits(["handleSelectionChange", "edit", "repair", "delete"]);
 
 const handleSelectionChange = (selection: any) => {
   emit("handleSelectionChange", [selection]);
@@ -168,8 +168,8 @@ const handleSelectionChange = (selection: any) => {
 const editDv = (data: DvTemperatureGaugeForm) => {
   emit("edit", [data]);
 };
-const detailDv = (data: DvTemperatureGaugePageVO) => {
-  emit("detail", [data]);
+const repairDv = (data: DvTemperatureGaugePageVO) => {
+  emit("repair", [data]);
 };
 const deleteDv = (data: DvTemperatureGaugeForm) => {
   emit("delete", [data]);

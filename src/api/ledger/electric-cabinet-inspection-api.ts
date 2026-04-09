@@ -92,6 +92,13 @@ const ElectricCabinetInspectionAPI = {
       },
     });
   },
+  downloadtemplate(){
+    return request({
+      url: `${ELECTRICCABINETINSPECTION_BASE_URL}/template`,
+      method: "get",
+      responseType: "blob",
+    });
+  }
 };
 
 export default ElectricCabinetInspectionAPI;

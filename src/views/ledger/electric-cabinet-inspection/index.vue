@@ -85,7 +85,7 @@
     </div>
 
     <el-card shadow="never">
-      <div class="mb-10px">
+      <div class="data-table__toolbar">
         <el-button
           v-hasPerm="['ledger:electric-cabinet-inspection:add']"
           type="success"
@@ -94,17 +94,20 @@
         >
           新增
         </el-button>
-        <el-button
-          v-hasPerm="['ledger:electric-cabinet-inspection:delete']"
-          type="danger"
-          :disabled="removeIds.length === 0"
-          icon="delete"
-          @click="handleDelete()"
-        >
-          删除
-        </el-button>
-      </div>
+        <div class="data-table__toolbar--actions">
+            <el-button
+              v-hasPerm="'ledger:elec-motor:add'"
+              icon="upload"
+              @click="handleOpenImportDialog"
+            >
+              导入
+            </el-button>
 
+            <el-button v-hasPerm="'ledger:elec-motor:delete'" icon="download" @click="handleExport">
+              导出
+            </el-button>
+        </div>
+      </div>
       <el-table
         ref="dataTableRef"
         v-loading="loading"
@@ -113,8 +116,6 @@
         border
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="55" align="center" />
-        <el-table-column key="id" label="序号" prop="id" min-width="150" align="center" />
         <el-table-column
           key="eciReportNo"
           label="报告编号"
@@ -233,7 +234,7 @@
               编辑
             </el-button>
             <el-button
-              v-hasPerm="['ledger:electric-cabinet-inspection:delete']"
+              v-hasPerm="['ledger:electric-cabinet-document:delete']"
               type="danger"
               size="small"
               link
@@ -256,16 +257,15 @@
     </el-card>
 
     <!-- 抽屉柜检修试验记录表单弹窗 -->
-    <el-dialog
+    <el-drawer
       v-model="dialog.visible"
-      :title="dialog.title"
-      width="500px"
-      @close="handleCloseDialog"
+      :close-on-click-modal="false"
+      :modal="true"
+      :resizable="true"
+      :size="'50%'"
+      :with-header="false"
     >
       <el-form ref="dataFormRef" :model="formData" :rules="rules" label-width="100px">
-        <el-form-item label="序号" prop="id">
-          <el-input v-model="formData.id" placeholder="序号" />
-        </el-form-item>
 
         <el-form-item label="报告编号" prop="eciReportNo">
           <el-input v-model="formData.eciReportNo" placeholder="报告编号" />
@@ -320,18 +320,6 @@
         <el-form-item label="所属工厂" prop="eciFactory">
           <el-input v-model="formData.eciFactory" placeholder="所属工厂" />
         </el-form-item>
-
-        <el-form-item label="备用1" prop="eciReserve1">
-          <el-input v-model="formData.eciReserve1" placeholder="备用1" />
-        </el-form-item>
-
-        <el-form-item label="备用2" prop="eciReserve2">
-          <el-input v-model="formData.eciReserve2" placeholder="备用2" />
-        </el-form-item>
-
-        <el-form-item label="备用3" prop="eciReserve3">
-          <el-input v-model="formData.eciReserve3" placeholder="备用3" />
-        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -339,7 +327,8 @@
           <el-button @click="handleCloseDialog()">取消</el-button>
         </div>
       </template>
-    </el-dialog>
+    </el-drawer>
+    <import-data v-model="importDialogVisible"/>
   </div>
 </template>
 
@@ -354,10 +343,10 @@ import ElectricCabinetInspectionAPI, {
   ElectricCabinetInspectionForm,
   ElectricCabinetInspectionPageQuery,
 } from "@/api/ledger/electric-cabinet-inspection-api";
-
+import importData from "./import-data.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
-
+const importDialogVisible =ref(false)
 const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
@@ -491,7 +480,40 @@ function handleDelete(id?: number) {
     }
   );
 }
+const handleOpenImportDialog = ()=>{
+  importDialogVisible.value = true;
+};
+const handleExport = ()=>{
+   ElectricCabinetInspectionAPI.export({
+    eciReportNo: queryParams.eciReportNo,
+    eciInspectDate: queryParams.eciInspectDate,
+    eciInspectUnit: queryParams.eciInspectUnit,
+    eciInspectPerson: queryParams.eciInspectPerson,
+    eciInspectType: queryParams.eciInspectType,
+    eciInspectItem: queryParams.eciInspectItem,
+    eciTestData: queryParams.eciTestData,
+    eciStandard: queryParams.eciStandard,
+    eciFactory: queryParams.eciFactory
+  }).then((response) => {
+    const fileData = response.data;
+    const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
+    const fileType =
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
 
+    const blob = new Blob([fileData], { type: fileType });
+    const downloadUrl = window.URL.createObjectURL(blob);
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = downloadUrl;
+    downloadLink.download = fileName;
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+
+    document.body.removeChild(downloadLink);
+    window.URL.revokeObjectURL(downloadUrl);
+  });
+};
 onMounted(() => {
   handleQuery();
 });

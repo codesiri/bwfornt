@@ -119,27 +119,6 @@
           min-width="150"
           align="center"
         />
-        <el-table-column
-          key="ecrReserve1"
-          label="备用1"
-          prop="ecrReserve1"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="ecrReserve2"
-          label="备用2"
-          prop="ecrReserve2"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="ecrReserve3"
-          label="备用3"
-          prop="ecrReserve3"
-          min-width="150"
-          align="center"
-        />
         <el-table-column fixed="right" label="操作" width="220">
           <template #default="scope">
             <el-button

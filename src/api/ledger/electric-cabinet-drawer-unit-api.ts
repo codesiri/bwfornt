@@ -62,6 +62,39 @@ const ElectricCabinetDrawerUnitAPI = {
       method: "delete",
     });
   },
+  /**
+   * 表导出
+   *
+   * @param queryParams 查询参数
+   */
+  export(queryParams: any) {
+    return request({
+      url: `${ELECTRICCABINETDRAWERUNIT_BASE_URL}/export`,
+      method: "get",
+      params: queryParams,
+      responseType: "blob",
+    });
+  },
+  import(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<any, ExcelResult>({
+      url: `${ELECTRICCABINETDRAWERUNIT_BASE_URL}/import`,
+      method: "post",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  /** 下载用户导入模板 */
+  downloadtemplate() {
+    return request({
+      url: `${ELECTRICCABINETDRAWERUNIT_BASE_URL}/template`,
+      method: "get",
+      responseType: "blob",
+    });
+  },
 };
 
 export default ElectricCabinetDrawerUnitAPI;

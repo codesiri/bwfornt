@@ -55,7 +55,7 @@
         :loading="loading"
         :page-data="pageData"
         @edit="editDv"
-        @detail="detailDv"
+        @repair="repairDv"
         @delete="deleteDv"
         @handle-selection-change="handleSelectionChange"
       ></table-data>
@@ -73,7 +73,12 @@
       @cancel="cancel"
       @confirm="confirm"
     />
-    <drawer-detail :visable="detailDrawerVisiable" :page-data="detailsInfo" @close="close" />
+    <maintance
+      :formdata="formData as DvTemperatureGaugeMaintenanceForm"
+      :visable="drawerVisable"
+      @cancel="cancel"
+      @confirm="confirm"
+    />
     <export-data
       v-model="importDialogVisible"
       @import-success="pressureHandleResetQuery()"
@@ -84,9 +89,9 @@
 
 <script setup lang="ts">
 import drawerPlus from "./componets/drawer-plus.vue";
-import drawerDetail from "./componets/drawer-detail.vue";
 import tableData from "./componets/table-data.vue";
 import exportData from "./componets/export-data.vue";
+import maintance from "./componets/maintance.vue";
 defineOptions({
   name: "DvTemperatureGauge",
   inheritAttrs: false,
@@ -97,6 +102,7 @@ import DvTemperatureGaugeAPI, {
   DvTemperatureGaugeForm,
   DvTemperatureGaugePageQuery,
 } from "@/api/ledger/dv-temperature-gauge-api";
+import { DvTemperatureGaugeMaintenanceForm } from ".";
 const queryFormRef = ref();
 const loading = ref(false);
 const importDialogVisible = ref(false);
@@ -104,7 +110,6 @@ const removeIds = ref<number[]>([]);
 const total = ref(0);
 const drawerVisable: Ref<boolean> = ref(false);
 const option = ref<string>("");
-const detailDrawerVisiable = ref<boolean>(false);
 const queryParams = reactive<DvTemperatureGaugePageQuery>({
   pageNum: 1,
   pageSize: 10,
@@ -117,17 +122,16 @@ const queryParams = reactive<DvTemperatureGaugePageQuery>({
 const pageData = ref<DvTemperatureGaugePageVO[]>([]);
 // 温度表单数据
 const formData = reactive<DvTemperatureGaugeForm>({});
-const detailsInfo = ref<DvTemperatureGaugePageVO>({});
 const editDv = (args: any) => {
   const [data] = args;
   Object.assign(formData, data.row);
   openDrawer("edit");
 };
 
-const detailDv = (data: any) => {
-  const [detail] = data;
-  detailsInfo.value = detail.row;
-  detailDrawerVisiable.value = !detailDrawerVisiable.value;
+const repairDv = (args: any) => {
+  const [data] = args;
+  Object.assign(formData, data.row);
+  openDrawer("repair");
 };
 /** 查询温度 */
 function handleQuery() {
@@ -165,6 +169,9 @@ const openDrawer = (args?: any) => {
   switch (args) {
     case "edit":
       option.value = "edit";
+      break;
+    case "repair":
+      option.value = "repair";
       break;
     case "add":
       resetAddFormData();
@@ -216,13 +223,16 @@ const confirm = () => {
       handleResetQuery();
     });
   }
+  if (option.value === "repair") {
+    DvTemperatureGaugeAPI.update(formData!.id!.toString(), formData).finally(() => {
+      drawerVisable.value = false;
+      handleResetQuery();
+    });
+  }
 };
 
 const cancel = () => {
   drawerVisable.value = false;
-};
-const close = () => {
-  detailDrawerVisiable.value = !detailDrawerVisiable.value;
 };
 
 const handleOpenImportDialog = () => {
