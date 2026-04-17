@@ -132,6 +132,16 @@
               编辑
             </el-button>
             <el-button
+              v-hasPerm="['ledger:electric-cabinet-record:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="tools"
+              @click="handleRepair(scope.row)"
+            >
+              报修
+            </el-button>
+            <el-button
               v-hasPerm="['ledger:electric-cabinet-document:delete']"
               type="danger"
               size="small"
@@ -209,6 +219,12 @@
         </div>
       </template>
     </el-drawer>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="maintanceDrawerVisible"
+      @cancel="handleCloseMaintanceDrawer"
+      @confirm="handleSubmitMaintance"
+    />
     <import-data v-model="importDialogVisible" />
   </div>
 </template>
@@ -224,7 +240,10 @@ import ElectricCabinetRecordAPI, {
   ElectricCabinetRecordForm,
   ElectricCabinetRecordPageQuery,
 } from "@/api/ledger/electric-cabinet-record-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { ElectricCabinetRecordMaintenanceForm } from "./index";
 import importData from "./import-data.vue";
+import maintance from "./maintance.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
 
@@ -232,6 +251,7 @@ const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
 const importDialogVisible = ref(false);
+const maintanceDrawerVisible = ref(false);
 const queryParams = reactive<ElectricCabinetRecordPageQuery>({
   pageNum: 1,
   pageSize: 10,
@@ -239,6 +259,7 @@ const queryParams = reactive<ElectricCabinetRecordPageQuery>({
 
 // 电器日常巡检记录表格数据
 const pageData = ref<ElectricCabinetRecordPageVO[]>([]);
+const maintanceFormData = reactive<ElectricCabinetRecordMaintenanceForm>({});
 
 // 弹窗
 const dialog = reactive({
@@ -387,6 +408,25 @@ const handleExport = () => {
     document.body.removeChild(downloadLink);
     window.URL.revokeObjectURL(downloadUrl);
   });
+};
+
+const handleRepair = (row: ElectricCabinetRecordPageVO) => {
+  maintanceFormData.ecrInspectItem = row.ecrInspectItem;
+  maintanceDrawerVisible.value = true;
+};
+
+const handleCloseMaintanceDrawer = () => {
+  maintanceDrawerVisible.value = false;
+};
+
+const handleSubmitMaintance = () => {
+  loading.value = true;
+  MaintainPlanAPI.create(maintanceFormData)
+    .then(() => {
+      ElMessage.success("报修成功");
+      handleCloseMaintanceDrawer();
+    })
+    .finally(() => (loading.value = false));
 };
 onMounted(() => {
   handleQuery();

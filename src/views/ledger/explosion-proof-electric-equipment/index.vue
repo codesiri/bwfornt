@@ -205,6 +205,16 @@
               编辑
             </el-button>
             <el-button
+              v-hasPerm="['ledger:explosion-proof-electric-equipment:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="tools"
+              @click="handleRepair(scope.row)"
+            >
+              报修
+            </el-button>
+            <el-button
               v-hasPerm="['ledger:explosion-proof-electric-equipment:delete']"
               type="danger"
               size="small"
@@ -326,6 +336,12 @@
         </div>
       </template>
     </el-drawer>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="maintanceDrawerVisible"
+      @cancel="handleCloseMaintanceDrawer"
+      @confirm="handleSubmitMaintance"
+    />
     <import-data v-model="importDialogVisible" @import-success="importSuccess" />
   </div>
 </template>
@@ -341,7 +357,10 @@ import ExplosionProofElectricEquipmentAPI, {
   ExplosionProofElectricEquipmentForm,
   ExplosionProofElectricEquipmentPageQuery,
 } from "@/api/ledger/explosion-proof-electric-equipment-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { ExplosionProofElectricEquipmentMaintenanceForm } from "./index";
 import importData from "./import-data.vue";
+import maintance from "./maintance.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
 
@@ -349,6 +368,7 @@ const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
 const importDialogVisible = ref(false);
+const maintanceDrawerVisible = ref(false);
 
 const queryParams = reactive<ExplosionProofElectricEquipmentPageQuery>({
   pageNum: 1,
@@ -357,6 +377,7 @@ const queryParams = reactive<ExplosionProofElectricEquipmentPageQuery>({
 
 // 防爆电气设备表格数据
 const pageData = ref<ExplosionProofElectricEquipmentPageVO[]>([]);
+const maintanceFormData = reactive<ExplosionProofElectricEquipmentMaintenanceForm>({});
 
 // 弹窗
 const dialog = reactive({
@@ -369,7 +390,6 @@ const formData = reactive<ExplosionProofElectricEquipmentForm>({});
 
 // 防爆电气设备表单校验规则
 const rules = reactive({
-  id: [{ required: true, message: "请输入序号", trigger: "blur" }],
   equipmentCode: [{ required: true, message: "请输入设备编号", trigger: "blur" }],
   equipmentName: [{ required: true, message: "请输入设备名称", trigger: "blur" }],
   specModel: [{ required: true, message: "请输入规格型号", trigger: "blur" }],
@@ -519,4 +539,23 @@ const handleOpenImportDialog = () => {
   importDialogVisible.value = true;
 };
 const importSuccess = () => {};
+
+const handleRepair = (row: ExplosionProofElectricEquipmentPageVO) => {
+  maintanceFormData.equipmentCode = row.equipmentCode;
+  maintanceDrawerVisible.value = true;
+};
+
+const handleCloseMaintanceDrawer = () => {
+  maintanceDrawerVisible.value = false;
+};
+
+const handleSubmitMaintance = () => {
+  loading.value = true;
+  MaintainPlanAPI.create(maintanceFormData)
+    .then(() => {
+      ElMessage.success("报修成功");
+      handleCloseMaintanceDrawer();
+    })
+    .finally(() => (loading.value = false));
+};
 </script>

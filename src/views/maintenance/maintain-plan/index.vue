@@ -314,10 +314,6 @@
       @close="handleCloseDialog"
     >
       <el-form ref="dataFormRef" :model="formData" :rules="rules" label-width="100px">
-        <el-form-item label="序号" prop="id">
-          <el-input v-model="formData.id" placeholder="序号" />
-        </el-form-item>
-
         <el-form-item label="计划类型" prop="maintainPlanType">
           <el-input v-model="formData.maintainPlanType" placeholder="计划类型" />
         </el-form-item>

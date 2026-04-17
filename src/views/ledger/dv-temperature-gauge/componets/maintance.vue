@@ -51,9 +51,15 @@
           />
         </el-form-item>
 
-        <!-- <el-form-item label="计划执行日期" prop="maintainPlanScheduleDate">
-          <el-input v-model="formData.maintainPlanScheduleDate" placeholder="计划执行日期" />
-        </el-form-item> -->
+        <el-form-item label="计划执行日期" prop="maintainPlanScheduleDate">
+          <el-date-picker
+            class="!w-[240px]"
+            v-model="formData.maintainPlanScheduleDate"
+            type="date"
+            placeholder="计划执行日期"
+            value-format="YYYY-MM-DD"
+          />
+        </el-form-item>
 
         <el-form-item label="计划时长" prop="maintainPlanDuration">
           <el-input v-model="formData.maintainPlanDuration" placeholder="计划时长" />
@@ -79,9 +85,15 @@
           <el-input v-model="formData.maintainPlanStatus" placeholder="计划状态 " />
         </el-form-item>
 
-        <!-- <el-form-item label="实际执行日期" prop="maintainPlanActualDate ">
-          <el-input v-model="formData.maintainPlanActualDate" placeholder="实际执行日期" />
-        </el-form-item> -->
+        <el-form-item label="实际执行日期" prop="maintainPlanActualDate ">
+          <el-date-picker
+            class="!w-[240px]"
+            v-model="formData.maintainPlanActualDate"
+            type="date"
+            placeholder="实际执行日期"
+            value-format="YYYY-MM-DD"
+          />
+        </el-form-item>
       </el-form>
     </template>
     <template #footer>
@@ -104,12 +116,7 @@ const tableSelectRef = ref();
 const popoverWidth = ref<string>("100%");
 const dataFormRef = ref();
 // 温度表单校验规则
-const rules = reactive({
-  deviceName: [{ required: true, message: "请输入装置名称", trigger: "blur" }],
-  tagNumber: [{ required: true, message: "请输入位号", trigger: "blur" }],
-  deviceNameSuffix: [{ required: true, message: "请输入设备名称", trigger: "blur" }],
-  dvType: [{ requried: true, message: "请选择设备类型", trigger: "blur" }],
-});
+const rules = reactive({});
 
 const emit = defineEmits<{
   (e: "cancel"): void;

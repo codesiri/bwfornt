@@ -75,6 +75,33 @@ const CableLineEquipmentAPI = {
       responseType: "blob",
     });
   },
+  /**
+   * 导入文件
+   *
+   * @param file 文件
+   */
+  importFile(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<any, any>({
+      url: `${CABLELINEEQUIPMENT_BASE_URL}/import`,
+      method: "post",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  /**
+   * 下载导入模板
+   */
+  downloadtemplate() {
+    return request({
+      url: `${CABLELINEEQUIPMENT_BASE_URL}/template`,
+      method: "get",
+      responseType: "blob",
+    });
+  },
 };
 
 export default CableLineEquipmentAPI;

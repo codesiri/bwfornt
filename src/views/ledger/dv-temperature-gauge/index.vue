@@ -74,7 +74,7 @@
       @confirm="confirm"
     />
     <maintance
-      :formdata="formData as DvTemperatureGaugeMaintenanceForm"
+      :formdata="maintanceFormData"
       :visable="drawerVisable"
       @cancel="cancel"
       @confirm="confirm"
@@ -103,6 +103,7 @@ import DvTemperatureGaugeAPI, {
   DvTemperatureGaugePageQuery,
 } from "@/api/ledger/dv-temperature-gauge-api";
 import { DvTemperatureGaugeMaintenanceForm } from ".";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
 const queryFormRef = ref();
 const loading = ref(false);
 const importDialogVisible = ref(false);
@@ -122,6 +123,7 @@ const queryParams = reactive<DvTemperatureGaugePageQuery>({
 const pageData = ref<DvTemperatureGaugePageVO[]>([]);
 // 温度表单数据
 const formData = reactive<DvTemperatureGaugeForm>({});
+const maintanceFormData = reactive<DvTemperatureGaugeMaintenanceForm>({});
 const editDv = (args: any) => {
   const [data] = args;
   Object.assign(formData, data.row);
@@ -225,6 +227,12 @@ const confirm = () => {
   }
   if (option.value === "repair") {
     DvTemperatureGaugeAPI.update(formData!.id!.toString(), formData).finally(() => {
+      drawerVisable.value = false;
+      handleResetQuery();
+    });
+  }
+  if (option.value === "repair") {
+    MaintainPlanAPI.create(maintanceFormData).finally(() => {
       drawerVisable.value = false;
       handleResetQuery();
     });

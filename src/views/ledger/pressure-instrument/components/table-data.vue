@@ -130,16 +130,6 @@
           size="small"
           link
           icon="edit"
-          @click="detailDv(scope)"
-        >
-          详情
-        </el-button>
-        <el-button
-          v-hasPerm="['ledger:pressure-instrument:edit']"
-          type="primary"
-          size="small"
-          link
-          icon="edit"
           @click="editDv(scope)"
         >
           编辑
@@ -152,6 +142,16 @@
           icon="delete"
         >
           删除
+        </el-button>
+        <el-button
+          v-hasPerm="['ledger:pressure-instrument:repair']"
+          type="warning"
+          size="small"
+          link
+          icon="promotion"
+          @click="repairDv(scope)"
+        >
+          报修
         </el-button>
       </template>
     </el-table-column>
@@ -173,7 +173,7 @@ const loading = defineModel<boolean>("loading", {
   required: true,
 });
 
-const emit = defineEmits(["handleSelectionChange", "edit", "detail"]);
+const emit = defineEmits(["handleSelectionChange", "edit", "detail", "repair"]);
 
 const handleSelectionChange = (selection: any) => {
   emit("handleSelectionChange", [selection]);
@@ -183,6 +183,9 @@ const editDv = (data: DvPressureInstrumentForm) => {
 };
 const detailDv = (data: DvPressureInstrumentPageVO) => {
   emit("detail", [data]);
+};
+const repairDv = (scope: any) => {
+  emit("repair", [scope.row]);
 };
 //获取字典数据
 </script>

@@ -312,6 +312,16 @@
               编辑
             </el-button>
             <el-button
+              v-hasPerm="['ledger:switch-valve:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="tools"
+              @click="handleRepair(scope.row)"
+            >
+              报修
+            </el-button>
+            <el-button
               v-hasPerm="['ledger:switch-valve:delete']"
               type="danger"
               size="small"
@@ -501,6 +511,13 @@
         </div>
       </template>
     </el-drawer>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="maintanceDrawerVisible"
+      @cancel="handleCloseMaintanceDrawer"
+      @confirm="handleSubmitMaintance"
+    />
+    <ImportData v-model="importDialogVisible" @import-success="handleImportSuccess" />
   </div>
 </template>
 
@@ -515,6 +532,10 @@ import SwitchValveAPI, {
   SwitchValveForm,
   SwitchValvePageQuery,
 } from "@/api/ledger/switch-valve-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { SwitchValveMaintenanceForm } from "./index";
+import maintance from "./maintance.vue";
+import ImportData from "./import-data.vue";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -523,6 +544,7 @@ const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
 const importDialogVisible = ref(false);
+const maintanceDrawerVisible = ref(false);
 const queryParams = reactive<SwitchValvePageQuery>({
   pageNum: 1,
   pageSize: 10,
@@ -530,6 +552,8 @@ const queryParams = reactive<SwitchValvePageQuery>({
 
 // 开关阀表格数据
 const pageData = ref<SwitchValvePageVO[]>([]);
+// 报修表单数据
+const maintanceFormData = reactive<SwitchValveMaintenanceForm>({});
 
 // 弹窗
 const dialog = reactive({
@@ -683,6 +707,34 @@ const handleExport = () => {
 const handleOpenImportDialog = () => {
   importDialogVisible.value = true;
 };
+
+const handleImportSuccess = () => {
+  importDialogVisible.value = false;
+  handleQuery();
+};
+
+/** 打开报修弹窗 */
+const handleRepair = (row: SwitchValvePageVO) => {
+  maintanceFormData.switchValveTag = row.switchValveTag;
+  maintanceDrawerVisible.value = true;
+};
+
+/** 关闭报修弹窗 */
+const handleCloseMaintanceDrawer = () => {
+  maintanceDrawerVisible.value = false;
+};
+
+/** 提交报修表单 */
+const handleSubmitMaintance = () => {
+  loading.value = true;
+  MaintainPlanAPI.create(maintanceFormData)
+    .then(() => {
+      ElMessage.success("报修成功");
+      handleCloseMaintanceDrawer();
+    })
+    .finally(() => (loading.value = false));
+};
+
 onMounted(() => {
   handleQuery();
 });

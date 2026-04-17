@@ -207,6 +207,16 @@
               编辑
             </el-button>
             <el-button
+              v-hasPerm="['ledger:electric-cabinet-spare-part:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="tools"
+              @click="handleRepair(scope.row)"
+            >
+              报修
+            </el-button>
+            <el-button
               v-hasPerm="['ledger:electric-cabinet-spare-part:delete']"
               type="danger"
               size="small"
@@ -316,6 +326,12 @@
         </div>
       </template>
     </el-drawer>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="maintanceDrawerVisible"
+      @cancel="handleCloseMaintanceDrawer"
+      @confirm="handleSubmitMaintance"
+    />
     <import-data v-model="importDialogVisible"/>
   </div>
 </template>
@@ -331,10 +347,14 @@ import ElectricCabinetSparePartAPI, {
   ElectricCabinetSparePartForm,
   ElectricCabinetSparePartPageQuery,
 } from "@/api/ledger/electric-cabinet-spare-part-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { ElectricCabinetSparePartMaintenanceForm } from "./index";
 import importData from "./import-data.vue";
+import maintance from "./maintance.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
 const importDialogVisible = ref(false);
+const maintanceDrawerVisible = ref(false);
 const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
@@ -346,6 +366,7 @@ const queryParams = reactive<ElectricCabinetSparePartPageQuery>({
 
 // 电器备品备件管理记录表格数据
 const pageData = ref<ElectricCabinetSparePartPageVO[]>([]);
+const maintanceFormData = reactive<ElectricCabinetSparePartMaintenanceForm>({});
 
 // 弹窗
 const dialog = reactive({
@@ -497,6 +518,28 @@ const handleExport = () => {
 };
 const handleOpenImportDialog = () => {
   importDialogVisible.value = true;
+};
+
+const handleRepair = (row: ElectricCabinetSparePartPageVO) => {
+  maintanceFormData.ecspPartName = row.ecspPartName;
+  maintanceFormData.maintainPlanEquipCode = row.id?.toString();
+  maintanceFormData.maintainPlanEquipName = row.ecspPartName;
+  maintanceFormData.maintainPlanEquipType = row.ecspSpecModel;
+  maintanceDrawerVisible.value = true;
+};
+
+const handleCloseMaintanceDrawer = () => {
+  maintanceDrawerVisible.value = false;
+};
+
+const handleSubmitMaintance = () => {
+  loading.value = true;
+  MaintainPlanAPI.create(maintanceFormData)
+    .then(() => {
+      ElMessage.success("报修成功");
+      handleCloseMaintanceDrawer();
+    })
+    .finally(() => (loading.value = false));
 };
 onMounted(() => {
   handleQuery();

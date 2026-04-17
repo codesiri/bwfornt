@@ -157,6 +157,16 @@
               编辑
             </el-button>
             <el-button
+              v-hasPerm="['ledger:electric-cabinet-change:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="tools"
+              @click="handleRepair(scope.row)"
+            >
+              报修
+            </el-button>
+            <el-button
               v-hasPerm="['ledger:electric-cabinet-document:delete']"
               type="danger"
               size="small"
@@ -243,6 +253,12 @@
         </div>
       </template>
     </el-drawer>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="maintanceDrawerVisible"
+      @cancel="handleCloseMaintanceDrawer"
+      @confirm="handleSubmitMaintance"
+    />
     <import-data v-model="importDialogVisible" />
   </div>
 </template>
@@ -258,7 +274,10 @@ import ElectricCabinetChangeAPI, {
   ElectricCabinetChangeForm,
   ElectricCabinetChangePageQuery,
 } from "@/api/ledger/electric-cabinet-change-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { ElectricCabinetChangeMaintenanceForm } from "./index";
 import importData from "./import-data.vue";
+import maintance from "./maintance.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
 
@@ -266,6 +285,7 @@ const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
 const importDialogVisible: Ref<boolean> = ref(false);
+const maintanceDrawerVisible = ref(false);
 const queryParams = reactive<ElectricCabinetChangePageQuery>({
   pageNum: 1,
   pageSize: 10,
@@ -273,6 +293,7 @@ const queryParams = reactive<ElectricCabinetChangePageQuery>({
 
 // 抽屉柜变更记录表格数据
 const pageData = ref<ElectricCabinetChangePageVO[]>([]);
+const maintanceFormData = reactive<ElectricCabinetChangeMaintenanceForm>({});
 
 // 弹窗
 const dialog = reactive({
@@ -285,7 +306,6 @@ const formData = reactive<ElectricCabinetChangeForm>({});
 
 // 抽屉柜变更记录表单校验规则
 const rules = reactive({
-  id: [{ required: true, message: "请输入序号", trigger: "blur" }],
   eccChangeDate: [{ required: true, message: "请输入变更日期", trigger: "blur" }],
   eccApplicant: [{ required: true, message: "请输入变更申请人", trigger: "blur" }],
   eccChangeReason: [{ required: true, message: "请输入变更原因", trigger: "blur" }],
@@ -428,5 +448,24 @@ const handleExport = () => {
 };
 const handleOpenImportDialog = () => {
   importDialogVisible.value = true;
+};
+
+const handleRepair = (row: ElectricCabinetChangePageVO) => {
+  maintanceFormData.eccChangeContent = row.eccChangeContent;
+  maintanceDrawerVisible.value = true;
+};
+
+const handleCloseMaintanceDrawer = () => {
+  maintanceDrawerVisible.value = false;
+};
+
+const handleSubmitMaintance = () => {
+  loading.value = true;
+  MaintainPlanAPI.create(maintanceFormData)
+    .then(() => {
+      ElMessage.success("报修成功");
+      handleCloseMaintanceDrawer();
+    })
+    .finally(() => (loading.value = false));
 };
 </script>

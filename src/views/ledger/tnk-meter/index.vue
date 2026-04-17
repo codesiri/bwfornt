@@ -263,6 +263,16 @@
             >
               删除
             </el-button>
+            <el-button
+              v-hasPerm="['ledger:tnk-meter:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="promotion"
+              @click="handleOpenRepairDialog(scope.row)"
+            >
+              报修
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -394,6 +404,12 @@
         </div>
       </template>
     </el-drawer>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="repairDialogVisible"
+      @cancel="handleCloseRepairDialog"
+      @confirm="handleSubmitRepair"
+    />
   </div>
 </template>
 
@@ -409,6 +425,9 @@ import TnkMeterAPI, {
   TnkMeterPageQuery,
 } from "@/api/ledger/tnk-meter-api";
 import importData from "./componets/import-data.vue";
+import maintance from "./componets/maintance.vue";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { TnkMeterMaintenanceForm } from "./index";
 const queryFormRef = ref();
 const dataFormRef = ref();
 
@@ -430,8 +449,14 @@ const dialog = reactive({
   visible: false,
 });
 
+// 报修弹窗
+const repairDialogVisible = ref(false);
+
 // 罐区仪表单数据
 const formData = reactive<TnkMeterForm>({});
+
+// 报修表单数据
+const maintanceFormData = reactive<TnkMeterMaintenanceForm>({});
 
 // 罐区仪表单校验规则
 const rules = reactive({
@@ -518,6 +543,41 @@ function handleCloseDialog() {
   dataFormRef.value.resetFields();
   dataFormRef.value.clearValidate();
   formData.id = undefined;
+}
+
+/** 打开报修弹窗 */
+function handleOpenRepairDialog(row: TnkMeterPageVO) {
+  repairDialogVisible.value = true;
+}
+
+/** 关闭报修弹窗 */
+function handleCloseRepairDialog() {
+  repairDialogVisible.value = false;
+  maintanceFormData.id = undefined;
+  maintanceFormData.maintainPlanType = undefined;
+  maintanceFormData.maintainPlanYear = undefined;
+  maintanceFormData.maintainPlanMonth = undefined;
+  maintanceFormData.maintainPlanEquipCode = undefined;
+  maintanceFormData.maintainPlanEquipName = undefined;
+  maintanceFormData.maintainPlanEquipType = undefined;
+  maintanceFormData.maintainPlanContent = undefined;
+  maintanceFormData.maintainPlanScheduleDate = undefined;
+  maintanceFormData.maintainPlanDuration = undefined;
+  maintanceFormData.maintainPlanDept = undefined;
+  maintanceFormData.maintainPlanPerson = undefined;
+  maintanceFormData.maintainPlanSafetyLevel = undefined;
+  maintanceFormData.maintainPlanSafetyMeasure = undefined;
+  maintanceFormData.maintainPlanStatus = undefined;
+  maintanceFormData.maintainPlanActualDate = undefined;
+}
+
+/** 提交报修 */
+function handleSubmitRepair() {
+  MaintainPlanAPI.create(maintanceFormData).then(() => {
+    ElMessage.success("报修成功");
+    handleCloseRepairDialog();
+    handleResetQuery();
+  });
 }
 
 /** 删除罐区仪 */

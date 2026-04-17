@@ -47,15 +47,6 @@
           >
             新增
           </el-button>
-          <el-button
-            v-hasPerm="['ledger:unit-special-instruments:delete']"
-            type="danger"
-            :disabled="removeIds.length === 0"
-            icon="delete"
-            @click="handleDelete()"
-          >
-            删除
-          </el-button>
         </div>
         <div class="data-table__toolbar--tools">
           <el-button
@@ -221,6 +212,16 @@
             >
               删除
             </el-button>
+            <el-button
+              v-hasPerm="['ledger:level-gauge:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="promotion"
+              @click="handleOpenRepairDialog(scope.row)"
+            >
+              报修
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -320,6 +321,12 @@
       </template>
     </el-drawer>
     <import-data v-model="importDialogVisible"></import-data>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="repairDialogVisible"
+      @cancel="handleCloseRepairDialog"
+      @confirm="handleSubmitRepair"
+    />
   </div>
 </template>
 
@@ -335,6 +342,9 @@ import LevelGaugeAPI, {
   LevelGaugePageQuery,
 } from "@/api/ledger/level-gauge-api";
 import importData from "./import-data.vue";
+import maintance from "./components/maintance.vue";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { LevelGaugeMaintenanceForm } from "./index";
 const queryFormRef = ref();
 const dataFormRef = ref();
 
@@ -356,8 +366,14 @@ const dialog = reactive({
   visible: false,
 });
 
+// 报修弹窗
+const repairDialogVisible = ref(false);
+
 // 液位计表单数据
 const formData = reactive<LevelGaugeForm>({});
+
+// 报修表单数据
+const maintanceFormData = reactive<LevelGaugeMaintenanceForm>({});
 
 // 液位计表单校验规则
 const rules = reactive({
@@ -442,6 +458,44 @@ function handleCloseDialog() {
   dataFormRef.value.resetFields();
   dataFormRef.value.clearValidate();
   formData.id = undefined;
+}
+
+/** 打开报修弹窗 */
+function handleOpenRepairDialog(row: LevelGaugePageVO) {
+  maintanceFormData.levelTag = row.levelTag;
+  maintanceFormData.maintainPlanEquipCode = row.id?.toString();
+  maintanceFormData.maintainPlanEquipName = row.levelEquip;
+  repairDialogVisible.value = true;
+}
+
+/** 关闭报修弹窗 */
+function handleCloseRepairDialog() {
+  repairDialogVisible.value = false;
+  maintanceFormData.id = undefined;
+  maintanceFormData.maintainPlanType = undefined;
+  maintanceFormData.maintainPlanYear = undefined;
+  maintanceFormData.maintainPlanMonth = undefined;
+  maintanceFormData.maintainPlanEquipCode = undefined;
+  maintanceFormData.maintainPlanEquipName = undefined;
+  maintanceFormData.maintainPlanEquipType = undefined;
+  maintanceFormData.maintainPlanContent = undefined;
+  maintanceFormData.maintainPlanScheduleDate = undefined;
+  maintanceFormData.maintainPlanDuration = undefined;
+  maintanceFormData.maintainPlanDept = undefined;
+  maintanceFormData.maintainPlanPerson = undefined;
+  maintanceFormData.maintainPlanSafetyLevel = undefined;
+  maintanceFormData.maintainPlanSafetyMeasure = undefined;
+  maintanceFormData.maintainPlanStatus = undefined;
+  maintanceFormData.maintainPlanActualDate = undefined;
+}
+
+/** 提交报修 */
+function handleSubmitRepair() {
+  MaintainPlanAPI.create(maintanceFormData).then(() => {
+    ElMessage.success("报修成功");
+    handleCloseRepairDialog();
+    handleResetQuery();
+  });
 }
 
 /** 删除液位计 */

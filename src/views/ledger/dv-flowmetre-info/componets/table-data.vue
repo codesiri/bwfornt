@@ -90,6 +90,16 @@
           编辑
         </el-button>
         <el-button
+          v-hasPerm="['ledger:dv-flowmetre-info:repair']"
+          type="warning"
+          size="small"
+          link
+          icon="tools"
+          @click="handleRepair(scope.row)"
+        >
+          报修
+        </el-button>
+        <el-button
           v-hasPerm="['ledger:dv-flowmetre-info:delete']"
           type="danger"
           size="small"
@@ -110,13 +120,17 @@ import { DvFlowmetreInfoPageVO } from "@/api/ledger/dv-flowmetre-info-api";
 const loading = defineModel<boolean>("loading");
 const pageData = defineModel<DvFlowmetreInfoPageVO[]>("pageData");
 
-const emit = defineEmits(["edit", "delete"]);
+const emit = defineEmits(["edit", "delete", "repair"]);
 const handleOpenDialog = (data: any) => {
   emit("edit", [data]);
 };
 
 const handleDelete = (data: any) => {
   emit("delete", [data]);
+};
+
+const handleRepair = (data: any) => {
+  emit("repair", [data]);
 };
 </script>
 

@@ -117,20 +117,11 @@
           size="small"
           link
           icon="edit"
-          @click="repairDv(scope)"
-        >
-          报修
-        </el-button>
-        <el-button
-          v-hasPerm="['ledger:dv-temperature-gauge:edit']"
-          type="primary"
-          size="small"
-          link
-          icon="edit"
           @click="editDv(scope)"
         >
           编辑
         </el-button>
+
         <el-button
           v-hasPerm="['ledger:dv-temperature-gauge:delete']"
           type="danger"
@@ -140,6 +131,17 @@
           @click="deleteDv(scope)"
         >
           删除
+        </el-button>
+
+        <el-button
+          v-hasPerm="['ledger:dv-temperature-gauge:edit']"
+          type="warning"
+          size="small"
+          link
+          icon="edit"
+          @click="repairDv(scope)"
+        >
+          报修
         </el-button>
       </template>
     </el-table-column>

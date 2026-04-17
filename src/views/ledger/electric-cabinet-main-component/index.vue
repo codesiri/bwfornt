@@ -135,6 +135,16 @@
               编辑
             </el-button>
             <el-button
+              v-hasPerm="['ledger:electric-cabinet-main-component:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="tools"
+              @click="handleRepair(scope.row)"
+            >
+              报修
+            </el-button>
+            <el-button
               v-hasPerm="['ledger:electric-cabinet-main-component:delete']"
               type="danger"
               size="small"
@@ -212,6 +222,12 @@
         </div>
       </template>
     </el-drawer>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="maintanceDrawerVisible"
+      @cancel="handleCloseMaintanceDrawer"
+      @confirm="handleSubmitMaintance"
+    />
     <import-data v-model="importDialogVisible" />
   </div>
 </template>
@@ -227,11 +243,15 @@ import ElectricCabinetMainComponentAPI, {
   ElectricCabinetMainComponentForm,
   ElectricCabinetMainComponentPageQuery,
 } from "@/api/ledger/electric-cabinet-main-component-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { ElectricCabinetMainComponentMaintenanceForm } from "./index";
 import ImportData from "./import-data.vue";
+import maintance from "./maintance.vue";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
 const importDialogVisible = ref(false);
+const maintanceDrawerVisible = ref(false);
 const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
@@ -243,6 +263,7 @@ const queryParams = reactive<ElectricCabinetMainComponentPageQuery>({
 
 // 抽屉柜主要元器件信息表格数据
 const pageData = ref<ElectricCabinetMainComponentPageVO[]>([]);
+const maintanceFormData = reactive<ElectricCabinetMainComponentMaintenanceForm>({});
 
 // 弹窗
 const dialog = reactive({
@@ -390,4 +411,34 @@ const handleExport = () => {
     window.URL.revokeObjectURL(downloadUrl);
   });
 };
+
+const handleRepair = (row: ElectricCabinetMainComponentPageVO) => {
+  maintanceFormData.ecmComponentName = row.ecmComponentName;
+  maintanceFormData.maintainPlanEquipCode = row.ecmFactoryNo || row.id?.toString();
+  maintanceFormData.maintainPlanEquipName = row.ecmComponentName;
+  maintanceFormData.maintainPlanEquipType = row.ecmSpecModel;
+  maintanceFormData.maintainPlanContent = [
+    row.ecmComponentName ? `元器件名称：${row.ecmComponentName}` : "",
+    row.ecmInstallLocation ? `安装位置：${row.ecmInstallLocation}` : "",
+    row.ecmRatedParameters ? `额定参数：${row.ecmRatedParameters}` : "",
+  ]
+    .filter(Boolean)
+    .join("；");
+  maintanceDrawerVisible.value = true;
+};
+
+const handleCloseMaintanceDrawer = () => {
+  maintanceDrawerVisible.value = false;
+};
+
+const handleSubmitMaintance = () => {
+  loading.value = true;
+  MaintainPlanAPI.create(maintanceFormData)
+    .then(() => {
+      ElMessage.success("报修成功");
+      handleCloseMaintanceDrawer();
+    })
+    .finally(() => (loading.value = false));
+};
+
 </script>

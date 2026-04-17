@@ -327,6 +327,16 @@
               编辑
             </el-button>
             <el-button
+              v-hasPerm="['ledger:analy-instrument:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="tools"
+              @click="handleRepair(scope.row)"
+            >
+              报修
+            </el-button>
+            <el-button
               v-hasPerm="['ledger:analy-instrument:delete']"
               type="danger"
               size="small"
@@ -526,6 +536,12 @@
         </div>
       </template>
     </el-drawer>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="maintanceDrawerVisible"
+      @cancel="handleCloseMaintanceDrawer"
+      @confirm="handleSubmitMaintance"
+    />
     <importData v-model="importDialogVisible"></importData>
   </div>
 </template>
@@ -541,7 +557,10 @@ import AnalyInstrumentAPI, {
   AnalyInstrumentForm,
   AnalyInstrumentPageQuery,
 } from "@/api/ledger/analy-instrument-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { AnalyInstrumentMaintenanceForm } from "./index";
 import importData from "./import-data.vue";
+import maintance from "./maintance.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
 
@@ -549,6 +568,7 @@ const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
 const importDialogVisible = ref(false);
+const maintanceDrawerVisible = ref(false);
 const queryParams = reactive<AnalyInstrumentPageQuery>({
   pageNum: 1,
   pageSize: 10,
@@ -556,6 +576,8 @@ const queryParams = reactive<AnalyInstrumentPageQuery>({
 
 // 分析仪表格数据
 const pageData = ref<AnalyInstrumentPageVO[]>([]);
+// 报修表单数据
+const maintanceFormData = reactive<AnalyInstrumentMaintenanceForm>({});
 
 // 弹窗
 const dialog = reactive({
@@ -711,6 +733,28 @@ const handleExport = () => {
 const handleOpenImportDialog = () => {
   importDialogVisible.value = true;
 };
+
+/** 打开报修弹窗 */
+const handleRepair = (row: AnalyInstrumentPageVO) => {
+  maintanceDrawerVisible.value = true;
+};
+
+/** 关闭报修弹窗 */
+const handleCloseMaintanceDrawer = () => {
+  maintanceDrawerVisible.value = false;
+};
+
+/** 提交报修表单 */
+const handleSubmitMaintance = () => {
+  loading.value = true;
+  MaintainPlanAPI.create(maintanceFormData)
+    .then(() => {
+      ElMessage.success("报修成功");
+      handleCloseMaintanceDrawer();
+    })
+    .finally(() => (loading.value = false));
+};
+
 onMounted(() => {
   handleQuery();
 });

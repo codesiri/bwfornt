@@ -50,6 +50,7 @@
         :loading="loading"
         :page-data="pageData"
         @edit="editDvPressure"
+        @repair="repairDvPressure"
         @detail="detailDvPressure"
         @handle-selection-change="handleSelectionChange"
       ></table-data>
@@ -67,6 +68,12 @@
       @cancel="cancel"
       @confirm="confirm"
     />
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="drawerVisable"
+      @cancel="cancel"
+      @confirm="confirm"
+    />
     <drawer-detail :visable="detailDrawerVisiable" :page-data="detailsInfo" @close="close" />
     <!-- 用户导入 -->
     <PressureInstrumentImport
@@ -79,6 +86,7 @@
 <script setup lang="ts">
 import drawerPlus from "./components/drawer-plus.vue";
 import tableData from "./components/table-data.vue";
+import maintance from "./components/maintance.vue";
 
 defineOptions({
   name: "DvPressureInstrument",
@@ -90,6 +98,8 @@ import DvPressureInstrumentAPI, {
   DvPressureInstrumentForm,
   DvPressureInstrumentPageQuery,
 } from "@/api/ledger/pressure-instrument-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { DvPressureInstrumentMaintenanceForm } from "./index";
 const queryFormRef = ref();
 const loading = ref(false);
 
@@ -112,6 +122,7 @@ const pageData = ref<DvPressureInstrumentPageVO[]>([]);
 // 压力表单数据
 const formData = reactive<DvPressureInstrumentForm>({});
 const detailsInfo = ref<DvPressureInstrumentPageVO>({});
+const maintanceFormData = reactive<DvPressureInstrumentMaintenanceForm>({});
 const resetAddFormData = () => {
   formData.id = undefined;
   formData.pressureAccuracy = undefined;
@@ -141,6 +152,14 @@ const detailDvPressure = (data: any) => {
   detailsInfo.value = detail.row;
   detailDrawerVisiable.value = !detailDrawerVisiable.value;
 };
+const repairDvPressure = (args: any) => {
+  const [data] = args;
+  // 填充报修表单数据
+  maintanceFormData.pressureTag = data.pressureTag;
+  maintanceFormData.maintainPlanEquipCode = data.id?.toString();
+  maintanceFormData.maintainPlanEquipName = data.pressureEquip;
+  openDrawer("repair");
+};
 /** 查询压力 */
 function pressureHandleQuery() {
   loading.value = true;
@@ -159,6 +178,9 @@ const openDrawer = (args?: any) => {
   switch (args) {
     case "edit":
       option.value = "edit";
+      break;
+    case "repair":
+      option.value = "repair";
       break;
     case "add":
       option.value = "add";
@@ -198,6 +220,12 @@ const confirm = () => {
   }
   if (option.value === "edit") {
     DvPressureInstrumentAPI.update(formData!.id!.toString(), formData).finally(() => {
+      drawerVisable.value = false;
+      pressureHandleResetQuery();
+    });
+  }
+  if (option.value === "repair") {
+    MaintainPlanAPI.create(maintanceFormData).finally(() => {
       drawerVisable.value = false;
       pressureHandleResetQuery();
     });

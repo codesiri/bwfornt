@@ -222,6 +222,16 @@
               编辑
             </el-button>
             <el-button
+              v-hasPerm="['ledger:cable-line-equipment:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="tools"
+              @click="handleRepair(scope.row)"
+            >
+              报修
+            </el-button>
+            <el-button
               v-hasPerm="['ledger:cable-line-equipment:delete']"
               type="danger"
               size="small"
@@ -351,6 +361,16 @@
         </div>
       </template>
     </el-drawer>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="maintanceDrawerVisible"
+      @cancel="handleCloseMaintanceDrawer"
+      @confirm="handleSubmitMaintance"
+    />
+    <export-data
+      v-model="importDialogVisible"
+      @import-success="handleImportSuccess"
+    />
   </div>
 </template>
 
@@ -365,6 +385,10 @@ import CableLineEquipmentAPI, {
   CableLineEquipmentForm,
   CableLineEquipmentPageQuery,
 } from "@/api/ledger/cable-line-equipment-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { CableLineEquipmentMaintenanceForm } from "./index";
+import maintance from "./maintance.vue";
+import exportData from "./export-data.vue";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
@@ -372,6 +396,8 @@ const dataFormRef = ref();
 const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
+const maintanceDrawerVisible = ref(false);
+const importDialogVisible = ref(false);
 
 const queryParams = reactive<CableLineEquipmentPageQuery>({
   pageNum: 1,
@@ -380,6 +406,7 @@ const queryParams = reactive<CableLineEquipmentPageQuery>({
 
 // 电器电缆线路表格数据
 const pageData = ref<CableLineEquipmentPageVO[]>([]);
+const maintanceFormData = reactive<CableLineEquipmentMaintenanceForm>({});
 
 // 弹窗
 const dialog = reactive({
@@ -531,7 +558,33 @@ const handleExport = () => {
     window.URL.revokeObjectURL(downloadUrl);
   });
 };
-const handleOpenImportDialog = () => {};
+
+const handleOpenImportDialog = () => {
+  importDialogVisible.value = true;
+};
+
+const handleImportSuccess = () => {
+  handleResetQuery();
+};
+
+const handleRepair = (row: CableLineEquipmentPageVO) => {
+  maintanceFormData.cleCableCode = row.cleCableCode;
+  maintanceDrawerVisible.value = true;
+};
+
+const handleCloseMaintanceDrawer = () => {
+  maintanceDrawerVisible.value = false;
+};
+
+const handleSubmitMaintance = () => {
+  loading.value = true;
+  MaintainPlanAPI.create(maintanceFormData)
+    .then(() => {
+      ElMessage.success("报修成功");
+      handleCloseMaintanceDrawer();
+    })
+    .finally(() => (loading.value = false));
+};
 onMounted(() => {
   handleQuery();
 });

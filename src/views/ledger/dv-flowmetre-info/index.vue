@@ -75,7 +75,12 @@
         </div>
       </div>
 
-      <table-data :page-data="pageData" @delete="handleDelete2" @edit="handleEdit"></table-data>
+      <table-data
+        :page-data="pageData"
+        @delete="handleDelete2"
+        @edit="handleEdit"
+        @repair="handleRepair"
+      ></table-data>
       <pagination
         v-if="total > 0"
         v-model:total="total"
@@ -158,6 +163,12 @@
         </div>
       </template>
     </el-drawer>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="maintanceDrawerVisible"
+      @cancel="handleCloseMaintanceDrawer"
+      @confirm="handleSubmitMaintance"
+    />
     <export-data v-model="importVisible"></export-data>
   </div>
 </template>
@@ -173,8 +184,11 @@ import DvFlowmetreInfoAPI, {
   DvFlowmetreInfoForm,
   DvFlowmetreInfoPageQuery,
 } from "@/api/ledger/dv-flowmetre-info-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { DvFlowmetreInfoMaintenanceForm } from "./index";
 import tableData from "./componets/table-data.vue";
 import exportData from "./componets/export-data.vue";
+import maintance from "./componets/maintance.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
 
@@ -191,8 +205,11 @@ const queryParams = reactive<DvFlowmetreInfoPageQuery>({
   instrumentName: undefined,
 });
 const importVisible = ref(false);
+const maintanceDrawerVisible = ref(false);
 // 流量计表格数据
 const pageData = ref<DvFlowmetreInfoPageVO[]>([]);
+// 报修表单数据
+const maintanceFormData = reactive<DvFlowmetreInfoMaintenanceForm>({});
 
 // 弹窗
 const dialog = reactive({
@@ -266,6 +283,28 @@ function handleOpenDialog(item?: any) {
 const handleEdit = (data: any) => {
   const [row] = data;
   handleOpenDialog(row);
+};
+
+/** 打开报修弹窗 */
+const handleRepair = (data: any) => {
+  const [row] = data;
+  maintanceDrawerVisible.value = true;
+};
+
+/** 关闭报修弹窗 */
+const handleCloseMaintanceDrawer = () => {
+  maintanceDrawerVisible.value = false;
+};
+
+/** 提交报修表单 */
+const handleSubmitMaintance = () => {
+  loading.value = true;
+  MaintainPlanAPI.create(maintanceFormData)
+    .then(() => {
+      ElMessage.success("报修成功");
+      handleCloseMaintanceDrawer();
+    })
+    .finally(() => (loading.value = false));
 };
 
 /** 提交流量计表单 */

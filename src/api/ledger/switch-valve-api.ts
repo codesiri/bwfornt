@@ -70,6 +70,31 @@ const SwitchValveAPI = {
       responseType: "blob",
     });
   },
+  /**
+   * 导入表
+   *
+   * @param file 导入文件
+   */
+  import(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<any, ExcelResult>({
+      url: `${SWITCHVALVE_BASE_URL}/import`,
+      method: "post",
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  /** 下载用户导入模板 */
+  downloadtemplate() {
+    return request({
+      url: `${SWITCHVALVE_BASE_URL}/template`,
+      method: "get",
+      responseType: "blob",
+    });
+  },
 };
 
 export default SwitchValveAPI;

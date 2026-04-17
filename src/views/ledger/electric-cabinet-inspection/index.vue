@@ -95,17 +95,17 @@
           新增
         </el-button>
         <div class="data-table__toolbar--actions">
-            <el-button
-              v-hasPerm="'ledger:elec-motor:add'"
-              icon="upload"
-              @click="handleOpenImportDialog"
-            >
-              导入
-            </el-button>
+          <el-button
+            v-hasPerm="'ledger:elec-motor:add'"
+            icon="upload"
+            @click="handleOpenImportDialog"
+          >
+            导入
+          </el-button>
 
-            <el-button v-hasPerm="'ledger:elec-motor:delete'" icon="download" @click="handleExport">
-              导出
-            </el-button>
+          <el-button v-hasPerm="'ledger:elec-motor:delete'" icon="download" @click="handleExport">
+            导出
+          </el-button>
         </div>
       </div>
       <el-table
@@ -200,27 +200,6 @@
           min-width="150"
           align="center"
         />
-        <el-table-column
-          key="eciReserve1"
-          label="备用1"
-          prop="eciReserve1"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="eciReserve2"
-          label="备用2"
-          prop="eciReserve2"
-          min-width="150"
-          align="center"
-        />
-        <el-table-column
-          key="eciReserve3"
-          label="备用3"
-          prop="eciReserve3"
-          min-width="150"
-          align="center"
-        />
         <el-table-column fixed="right" label="操作" width="220">
           <template #default="scope">
             <el-button
@@ -232,6 +211,16 @@
               @click="handleOpenDialog(scope.row.id)"
             >
               编辑
+            </el-button>
+            <el-button
+              v-hasPerm="['ledger:electric-cabinet-inspection:repair']"
+              type="warning"
+              size="small"
+              link
+              icon="tools"
+              @click="handleRepair(scope.row)"
+            >
+              报修
             </el-button>
             <el-button
               v-hasPerm="['ledger:electric-cabinet-document:delete']"
@@ -266,7 +255,6 @@
       :with-header="false"
     >
       <el-form ref="dataFormRef" :model="formData" :rules="rules" label-width="100px">
-
         <el-form-item label="报告编号" prop="eciReportNo">
           <el-input v-model="formData.eciReportNo" placeholder="报告编号" />
         </el-form-item>
@@ -328,7 +316,13 @@
         </div>
       </template>
     </el-drawer>
-    <import-data v-model="importDialogVisible"/>
+    <maintance
+      :formdata="maintanceFormData"
+      :visable="maintanceDrawerVisible"
+      @cancel="handleCloseMaintanceDrawer"
+      @confirm="handleSubmitMaintance"
+    />
+    <import-data v-model="importDialogVisible" />
   </div>
 </template>
 
@@ -343,10 +337,14 @@ import ElectricCabinetInspectionAPI, {
   ElectricCabinetInspectionForm,
   ElectricCabinetInspectionPageQuery,
 } from "@/api/ledger/electric-cabinet-inspection-api";
+import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { ElectricCabinetInspectionMaintenanceForm } from "./index";
 import importData from "./import-data.vue";
+import maintance from "./maintance.vue";
 const queryFormRef = ref();
 const dataFormRef = ref();
-const importDialogVisible =ref(false)
+const importDialogVisible = ref(false);
+const maintanceDrawerVisible = ref(false);
 const loading = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
@@ -358,6 +356,7 @@ const queryParams = reactive<ElectricCabinetInspectionPageQuery>({
 
 // 抽屉柜检修试验记录表格数据
 const pageData = ref<ElectricCabinetInspectionPageVO[]>([]);
+const maintanceFormData = reactive<ElectricCabinetInspectionMaintenanceForm>({});
 
 // 弹窗
 const dialog = reactive({
@@ -370,7 +369,6 @@ const formData = reactive<ElectricCabinetInspectionForm>({});
 
 // 抽屉柜检修试验记录表单校验规则
 const rules = reactive({
-  id: [{ required: true, message: "请输入序号", trigger: "blur" }],
   eciReportNo: [{ required: true, message: "请输入报告编号", trigger: "blur" }],
   eciInspectDate: [{ required: true, message: "请输入检修 / 试验日期", trigger: "blur" }],
   eciInspectUnit: [{ required: true, message: "请输入检修 / 试验单位", trigger: "blur" }],
@@ -480,11 +478,11 @@ function handleDelete(id?: number) {
     }
   );
 }
-const handleOpenImportDialog = ()=>{
+const handleOpenImportDialog = () => {
   importDialogVisible.value = true;
 };
-const handleExport = ()=>{
-   ElectricCabinetInspectionAPI.export({
+const handleExport = () => {
+  ElectricCabinetInspectionAPI.export({
     eciReportNo: queryParams.eciReportNo,
     eciInspectDate: queryParams.eciInspectDate,
     eciInspectUnit: queryParams.eciInspectUnit,
@@ -493,7 +491,7 @@ const handleExport = ()=>{
     eciInspectItem: queryParams.eciInspectItem,
     eciTestData: queryParams.eciTestData,
     eciStandard: queryParams.eciStandard,
-    eciFactory: queryParams.eciFactory
+    eciFactory: queryParams.eciFactory,
   }).then((response) => {
     const fileData = response.data;
     const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
@@ -514,6 +512,25 @@ const handleExport = ()=>{
     window.URL.revokeObjectURL(downloadUrl);
   });
 };
+
+const handleRepair = (row: ElectricCabinetInspectionPageVO) => {
+  maintanceDrawerVisible.value = true;
+};
+
+const handleCloseMaintanceDrawer = () => {
+  maintanceDrawerVisible.value = false;
+};
+
+const handleSubmitMaintance = () => {
+  loading.value = true;
+  MaintainPlanAPI.create(maintanceFormData)
+    .then(() => {
+      ElMessage.success("报修成功");
+      handleCloseMaintanceDrawer();
+    })
+    .finally(() => (loading.value = false));
+};
+
 onMounted(() => {
   handleQuery();
 });
