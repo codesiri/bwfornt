@@ -8,6 +8,12 @@
     border
     @selection-change="handleSelectionChange"
   >
+    <el-table-column type="selection" width="55" align="center" />
+    <el-table-column label="序号" width="80" align="center">
+      <template #default="scope">
+        {{ getRowIndex(scope.$index) }}
+      </template>
+    </el-table-column>
     <el-table-column key="tagNumber" label="位号" prop="tagNumber" min-width="150" align="center" />
     <el-table-column
       key="deviceName"
@@ -162,10 +168,20 @@ const loading = defineModel<boolean>("loading", {
   required: true,
 });
 
+const props = defineProps<{
+  pageNum?: number;
+  pageSize?: number;
+}>();
+
+const getRowIndex = (index: number) => {
+  const { pageNum = 1, pageSize = 10 } = props;
+  return (pageNum - 1) * pageSize + index + 1;
+};
+
 const emit = defineEmits(["handleSelectionChange", "edit", "repair", "delete"]);
 
 const handleSelectionChange = (selection: any) => {
-  emit("handleSelectionChange", [selection]);
+  emit("handleSelectionChange", selection);
 };
 const editDv = (data: DvTemperatureGaugeForm) => {
   emit("edit", [data]);

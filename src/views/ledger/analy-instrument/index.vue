@@ -60,7 +60,7 @@
             icon="delete"
             @click="handleDelete()"
           >
-            删除
+            批量删除
           </el-button>
         </div>
         <div class="data-table__toolbar--tools">
@@ -88,7 +88,14 @@
         highlight-current-row
         label-width="auto"
         border
+        @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
+          </template>
+        </el-table-column>
         <el-table-column
           key="analyInstrumentCode"
           label="设备位号"
@@ -702,6 +709,11 @@ function handleDelete(id?: number) {
     }
   );
 }
+
+/** 表格选择变化 */
+function handleSelectionChange(selection: AnalyInstrumentPageVO[]) {
+  removeIds.value = selection.map((item) => item.id).filter((id): id is number => id !== undefined);
+}
 const handleExport = () => {
   AnalyInstrumentAPI.export({
     analyInstrumentCode: queryParams.analyInstrumentCode,
@@ -737,6 +749,7 @@ const handleOpenImportDialog = () => {
 /** 打开报修弹窗 */
 const handleRepair = (row: AnalyInstrumentPageVO) => {
   maintanceDrawerVisible.value = true;
+  maintanceFormData.analyInstrumentCode = row.analyInstrumentCode;
 };
 
 /** 关闭报修弹窗 */

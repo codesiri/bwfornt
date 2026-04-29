@@ -47,6 +47,15 @@
           >
             新增
           </el-button>
+          <el-button
+            v-hasPerm="['ledger:level-gauge:delete']"
+            type="danger"
+            icon="delete"
+            :disabled="removeIds.length === 0"
+            @click="handleDelete()"
+          >
+            批量删除
+          </el-button>
         </div>
         <div class="data-table__toolbar--tools">
           <el-button
@@ -73,7 +82,14 @@
         :data="pageData"
         highlight-current-row
         border
+        @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
+          </template>
+        </el-table-column>
         <el-table-column
           key="levelTag"
           label="位号"
@@ -411,6 +427,11 @@ function handleResetQuery() {
   queryFormRef.value!.resetFields();
   queryParams.pageNum = 1;
   handleQuery();
+}
+
+/** 行复选框选中记录选中ID集合 */
+function handleSelectionChange(selection: any) {
+  removeIds.value = selection.map((item: any) => item.id);
 }
 function handleOpenDialog(id?: number) {
   console.log(id);

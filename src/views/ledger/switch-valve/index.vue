@@ -47,6 +47,15 @@
           >
             新增
           </el-button>
+          <el-button
+            v-hasPerm="['ledger:switch-valve:delete']"
+            type="danger"
+            icon="delete"
+            :disabled="removeIds.length === 0"
+            @click="handleDelete()"
+          >
+            批量删除
+          </el-button>
         </div>
         <div class="data-table__toolbar--tools">
           <el-button
@@ -75,6 +84,12 @@
         border
         @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ getRowIndex(scope.$index) }}
+          </template>
+        </el-table-column>
         <el-table-column
           key="switchValveTag"
           label="位号"
@@ -549,6 +564,10 @@ const queryParams = reactive<SwitchValvePageQuery>({
   pageNum: 1,
   pageSize: 10,
 });
+
+const getRowIndex = (index: number) => {
+  return (queryParams.pageNum - 1) * queryParams.pageSize + index + 1;
+};
 
 // 开关阀表格数据
 const pageData = ref<SwitchValvePageVO[]>([]);

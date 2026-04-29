@@ -1,5 +1,18 @@
 <template>
-  <el-table ref="dataTableRef" v-loading="loading" :data="pageData" highlight-current-row border>
+  <el-table
+    ref="dataTableRef"
+    v-loading="loading"
+    :data="pageData"
+    highlight-current-row
+    border
+    @selection-change="handleSelectionChange"
+  >
+    <el-table-column type="selection" width="55" align="center" />
+    <el-table-column label="序号" width="80" align="center">
+      <template #default="scope">
+        {{ (props.pageNum - 1) * props.pageSize + scope.$index + 1 }}
+      </template>
+    </el-table-column>
     <el-table-column
       key="tagNumber"
       label="仪表位号"
@@ -120,7 +133,17 @@ import { DvFlowmetreInfoPageVO } from "@/api/ledger/dv-flowmetre-info-api";
 const loading = defineModel<boolean>("loading");
 const pageData = defineModel<DvFlowmetreInfoPageVO[]>("pageData");
 
-const emit = defineEmits(["edit", "delete", "repair"]);
+interface Props {
+  pageNum?: number;
+  pageSize?: number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  pageNum: 1,
+  pageSize: 10
+});
+
+const emit = defineEmits(["edit", "delete", "repair", "handleSelectionChange"]);
 const handleOpenDialog = (data: any) => {
   emit("edit", [data]);
 };
@@ -131,6 +154,10 @@ const handleDelete = (data: any) => {
 
 const handleRepair = (data: any) => {
   emit("repair", [data]);
+};
+
+const handleSelectionChange = (selection: any) => {
+  emit("handleSelectionChange", selection);
 };
 </script>
 

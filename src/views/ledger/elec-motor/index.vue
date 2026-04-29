@@ -46,6 +46,15 @@
           >
             新增
           </el-button>
+          <el-button
+            v-hasPerm="['ledger:elec-motor:delete']"
+            type="danger"
+            :disabled="removeIds.length === 0"
+            icon="delete"
+            @click="handleDelete()"
+          >
+            批量删除
+          </el-button>
         </div>
         <div class="data-table__toolbar--tools">
           <el-button
@@ -70,6 +79,12 @@
         border
         @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ getRowIndex(scope.$index) }}
+          </template>
+        </el-table-column>
         <el-table-column
           key="elecMotorTag"
           label="位号"
@@ -398,6 +413,10 @@ const queryParams = reactive<ElecMotorPageQuery>({
   pageSize: 10,
 });
 
+const getRowIndex = (index: number) => {
+  return (queryParams.pageNum - 1) * queryParams.pageSize + index + 1;
+};
+
 // 电器电动机表格数据
 const pageData = ref<ElecMotorPageVO[]>([]);
 const maintanceFormData = reactive<ElecMotorMaintenanceForm>({});
@@ -443,7 +462,9 @@ function handleResetQuery() {
 
 /** 行复选框选中记录选中ID集合 */
 function handleSelectionChange(selection: any) {
-  removeIds.value = selection.map((item: any) => item.id);
+  removeIds.value = selection.map((item: any) => {
+    return item.elecMotorId;
+  });
 }
 
 /** 打开电器电动机弹窗 */
@@ -497,6 +518,7 @@ function handleCloseDialog() {
 
 /** 删除电器电动机 */
 function handleDelete(id?: number) {
+  console.log(removeIds);
   const ids = [id || removeIds.value].join(",");
   if (!ids) {
     ElMessage.warning("请勾选删除项");

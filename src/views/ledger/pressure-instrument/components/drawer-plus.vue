@@ -102,9 +102,12 @@ const labelPosition = ref<FormProps["labelPosition"]>("right");
 const dataFormRef = ref();
 // 压力表单校验规则
 const rules = reactive({
-  pressureDevice: [{ required: true, message: "请输入装置名称", trigger: "blur" }],
   pressureTag: [{ required: true, message: "请输入位号", trigger: "blur" }],
+  pressureDevice: [{ required: true, message: "请输入装置名称", trigger: "blur" }],
   pressureEquip: [{ required: true, message: "请输入设备名称", trigger: "blur" }],
+  pressureManu: [{ required: true, message: "请输入生产厂家", trigger: "blur" }],
+  pressureRange: [{ required: true, message: "请输入测量范围", trigger: "blur" }],
+  pressureLocation: [{ required: true, message: "请输入安装位置及用途", trigger: "blur" }],
 });
 
 const emit = defineEmits<{

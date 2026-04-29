@@ -54,7 +54,7 @@
             icon="delete"
             @click="handleDelete()"
           >
-            删除
+            批量删除
           </el-button>
         </div>
         <div class="data-table__toolbar--tools">
@@ -77,9 +77,12 @@
 
       <table-data
         :page-data="pageData"
+        :page-num="queryParams.pageNum"
+        :page-size="queryParams.pageSize"
         @delete="handleDelete2"
         @edit="handleEdit"
         @repair="handleRepair"
+        @handle-selection-change="handleSelectionChange"
       ></table-data>
       <pagination
         v-if="total > 0"
@@ -268,6 +271,11 @@ function handleResetQuery() {
   handleQuery();
 }
 
+/** 行复选框选中记录选中ID集合 */
+function handleSelectionChange(selection: any) {
+  removeIds.value = selection.map((item: any) => item.id);
+}
+
 /** 打开流量计弹窗 */
 function handleOpenDialog(item?: any) {
   dialog.visible = true;
@@ -289,6 +297,7 @@ const handleEdit = (data: any) => {
 const handleRepair = (data: any) => {
   const [row] = data;
   maintanceDrawerVisible.value = true;
+  maintanceFormData.tagNumber = row.tagNumber;
 };
 
 /** 关闭报修弹窗 */

@@ -194,7 +194,7 @@
         <el-form-item label="联锁设定值" prop="interlockSetValue">
           <el-input
             v-model="formData.interlockSetValue"
-            :disabled="disabledInterLockSetValue"
+            :disabled="formData.interlocked == 0"
             placeholder="联锁设定值"
           />
         </el-form-item>
@@ -233,7 +233,7 @@ const rules = reactive({
   deviceName: [{ required: true, message: "请输入装置名称", trigger: "blur" }],
   tagNumber: [{ required: true, message: "请输入位号", trigger: "blur" }],
   deviceNameSuffix: [{ required: true, message: "请输入设备名称", trigger: "blur" }],
-  dvType: [{ requried: true, message: "请选择设备类型", trigger: "blur" }],
+  dvType: [{ required: true, message: "请选择设备类型", trigger: "blur" }],
 });
 
 const emit = defineEmits<{
@@ -286,10 +286,6 @@ const confirmClick = () => {
 // const handleClose = () => {
 //   console.log("处理关闭");
 // };
-const disabledInterLockSetValue = computed(() => {
-  const value = formData.value.interlocked as number;
-  return value == 0;
-});
 </script>
 
 <style scoped lang="scss">

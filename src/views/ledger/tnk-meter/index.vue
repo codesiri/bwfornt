@@ -39,6 +39,15 @@
           >
             新增
           </el-button>
+          <el-button
+            v-hasPerm="['ledger:tnk-meter:delete']"
+            type="danger"
+            icon="delete"
+            :disabled="removeIds.length === 0"
+            @click="handleDelete()"
+          >
+            批量删除
+          </el-button>
         </div>
 
         <div class="data-table__toolbar--tools">
@@ -66,7 +75,14 @@
         :data="pageData"
         highlight-current-row
         border
+        @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
+          </template>
+        </el-table-column>
         <el-table-column
           key="tnkMeterTag"
           label="仪表位号"
@@ -458,6 +474,17 @@ const formData = reactive<TnkMeterForm>({});
 // 报修表单数据
 const maintanceFormData = reactive<TnkMeterMaintenanceForm>({});
 
+/** 重置表单数据 */
+function resetFormData() {
+  Object.keys(formData).forEach((key) => {
+    delete (formData as any)[key];
+  });
+  // 设置默认值
+  formData.status = 1;
+  formData.tnkMeterMedStat = "0";
+  formData.tnkMeterLeakStat = 0;
+}
+
 // 罐区仪表单校验规则
 const rules = reactive({
   tnkMeterTag: [{ required: true, message: "请输入仪表位号", trigger: "blur" }],
@@ -471,7 +498,8 @@ const rules = reactive({
   tnkMeterChkTime: [{ required: true, message: "请输入检查时间", trigger: "blur" }],
   tnkMeterChkCycle: [{ required: true, message: "请输入检查周期", trigger: "blur" }],
   tnkMeterFactoryNo: [{ required: true, message: "请输入出厂编号", trigger: "blur" }],
-  status: [{ required: true, message: "请输入设备状态", trigger: "blur" }],
+  status: [{ required: true, message: "请选择设备状态", trigger: "change" }],
+  dvType: [{ required: true, message: "请输入设备类型", trigger: "blur" }],
 });
 
 /** 查询罐区仪 */
@@ -494,6 +522,11 @@ function handleResetQuery() {
   handleQuery();
 }
 
+/** 行复选框选中记录选中ID集合 */
+function handleSelectionChange(selection: any) {
+  removeIds.value = selection.map((item: any) => item.id);
+}
+
 /** 打开罐区仪弹窗 */
 function handleOpenDialog(id?: number) {
   dialog.visible = true;
@@ -504,9 +537,7 @@ function handleOpenDialog(id?: number) {
     });
   } else {
     dialog.title = "新增罐区仪";
-    formData.status = 0;
-    formData.tnkMeterMedStat = 0;
-    formData.tnkMeterLeakStat = 0;
+    resetFormData();
   }
 }
 
@@ -542,12 +573,18 @@ function handleCloseDialog() {
   dialog.visible = false;
   dataFormRef.value.resetFields();
   dataFormRef.value.clearValidate();
-  formData.id = undefined;
+  // 延迟清空表单数据，确保 resetFields 完成
+  setTimeout(() => {
+    Object.keys(formData).forEach((key) => {
+      delete (formData as any)[key];
+    });
+  }, 0);
 }
 
 /** 打开报修弹窗 */
 function handleOpenRepairDialog(row: TnkMeterPageVO) {
   repairDialogVisible.value = true;
+  maintanceFormData.tnkMeterTag = row.tnkMeterTag;
 }
 
 /** 关闭报修弹窗 */
@@ -582,8 +619,8 @@ function handleSubmitRepair() {
 
 /** 删除罐区仪 */
 function handleDelete(id?: number) {
-  const ids = [id || removeIds.value].join(",");
-  if (!ids) {
+  const ids = id ? [id] : removeIds.value;
+  if (ids.length === 0) {
     ElMessage.warning("请勾选删除项");
     return;
   }
@@ -595,7 +632,7 @@ function handleDelete(id?: number) {
   }).then(
     () => {
       loading.value = true;
-      TnkMeterAPI.deleteByIds(ids)
+      TnkMeterAPI.deleteByIds(ids.join(","))
         .then(() => {
           ElMessage.success("删除成功");
           handleResetQuery();

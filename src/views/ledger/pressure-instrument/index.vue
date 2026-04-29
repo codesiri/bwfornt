@@ -26,6 +26,15 @@
           >
             新增
           </el-button>
+          <el-button
+            v-hasPerm="['ledger:pressure-instrument:delete']"
+            type="danger"
+            :disabled="removeIds.length === 0"
+            icon="delete"
+            @click="handleDelete()"
+          >
+            批量删除
+          </el-button>
         </div>
         <div class="data-table__toolbar--tools">
           <el-button
@@ -49,6 +58,8 @@
       <table-data
         :loading="loading"
         :page-data="pageData"
+        :page-num="queryParams.pageNum"
+        :page-size="queryParams.pageSize"
         @edit="editDvPressure"
         @repair="repairDvPressure"
         @detail="detailDvPressure"
@@ -70,7 +81,7 @@
     />
     <maintance
       :formdata="maintanceFormData"
-      :visable="drawerVisable"
+      :visable="maintanceDialogVisible"
       @cancel="cancel"
       @confirm="confirm"
     />
@@ -123,6 +134,7 @@ const pageData = ref<DvPressureInstrumentPageVO[]>([]);
 const formData = reactive<DvPressureInstrumentForm>({});
 const detailsInfo = ref<DvPressureInstrumentPageVO>({});
 const maintanceFormData = reactive<DvPressureInstrumentMaintenanceForm>({});
+const maintanceDialogVisible = ref(false);
 const resetAddFormData = () => {
   formData.id = undefined;
   formData.pressureAccuracy = undefined;
@@ -174,19 +186,22 @@ function pressureHandleQuery() {
 }
 
 const openDrawer = (args?: any) => {
-  drawerVisable.value = true;
   switch (args) {
     case "edit":
+      drawerVisable.value = true;
       option.value = "edit";
       break;
     case "repair":
+      maintanceDialogVisible.value = true;
       option.value = "repair";
       break;
     case "add":
+      drawerVisable.value = true;
       option.value = "add";
       resetAddFormData();
       break;
     case "delete":
+      drawerVisable.value = true;
       option.value = "delete";
       break;
   }
@@ -209,6 +224,34 @@ function pressureHandleResetQuery() {
 /** 行复选框选中记录选中ID集合 */
 function handleSelectionChange(selection: any) {
   removeIds.value = selection.map((item: any) => item.id);
+}
+
+/** 删除压力仪表 */
+function handleDelete(id?: number) {
+  const ids = [id || removeIds.value].join(",");
+  if (!ids) {
+    ElMessage.warning("请勾选删除项");
+    return;
+  }
+
+  ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  }).then(
+    () => {
+      loading.value = true;
+      DvPressureInstrumentAPI.deleteByIds(ids)
+        .then(() => {
+          ElMessage.success("删除成功");
+          pressureHandleResetQuery();
+        })
+        .finally(() => (loading.value = false));
+    },
+    () => {
+      ElMessage.info("已取消删除");
+    }
+  );
 }
 
 const confirm = () => {
@@ -234,6 +277,7 @@ const confirm = () => {
 
 const cancel = () => {
   drawerVisable.value = false;
+  maintanceDialogVisible.value = false;
 };
 const close = () => {
   detailDrawerVisiable.value = !detailDrawerVisiable.value;

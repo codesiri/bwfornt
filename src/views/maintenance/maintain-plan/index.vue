@@ -142,6 +142,7 @@
           type="success"
           icon="plus"
           @click="handleOpenDialog()"
+          v-show="false"
         >
           新增
         </el-button>

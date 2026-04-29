@@ -142,7 +142,7 @@ export interface DvTemperatureGaugeForm {
   /** 备注 */
   remark?: string;
   status?: number;
-  dvType?: number;
+  dvType?: string;
   factory?: string;
 }
 

@@ -65,14 +65,25 @@
 
     <el-card shadow="never">
       <div class="data-table__toolbar">
-        <el-button
-          v-hasPerm="['ledger:relay-protection-setting:add']"
-          type="success"
-          icon="plus"
-          @click="handleOpenDialog()"
-        >
-          新增
-        </el-button>
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['ledger:relay-protection-setting:add']"
+            type="success"
+            icon="plus"
+            @click="handleOpenDialog()"
+          >
+            新增
+          </el-button>
+          <el-button
+            v-hasPerm="['ledger:relay-protection-setting:delete']"
+            type="danger"
+            icon="delete"
+            :disabled="removeIds.length === 0"
+            @click="handleDelete()"
+          >
+            批量删除
+          </el-button>
+        </div>
         <div class="data-table__toolbar--tools">
           <el-button
             v-hasPerm="'ledger:pressure-instrument:import'"
@@ -100,6 +111,12 @@
         border
         @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ getRowIndex(scope.$index) }}
+          </template>
+        </el-table-column>
         <el-table-column
           key="rpsRelayCode"
           label="继电器编号"
@@ -382,6 +399,10 @@ const queryParams = reactive<RelayProtectionSettingPageQuery>({
   pageNum: 1,
   pageSize: 10,
 });
+
+const getRowIndex = (index: number) => {
+  return (queryParams.pageNum - 1) * queryParams.pageSize + index + 1;
+};
 
 // 继电保护定值台账表格数据
 const pageData = ref<RelayProtectionSettingPageVO[]>([]);

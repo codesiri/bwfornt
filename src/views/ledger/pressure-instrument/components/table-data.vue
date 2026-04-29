@@ -8,6 +8,12 @@
     border
     @selection-change="handleSelectionChange"
   >
+    <el-table-column type="selection" width="55" align="center" />
+    <el-table-column label="序号" width="80" align="center">
+      <template #default="scope">
+        {{ getRowIndex(scope.$index) }}
+      </template>
+    </el-table-column>
     <el-table-column
       key="pressureTag"
       label="位号"
@@ -172,6 +178,16 @@ const pageData = defineModel<DvPressureInstrumentPageVO[]>("pageData", {
 const loading = defineModel<boolean>("loading", {
   required: true,
 });
+
+const props = defineProps<{
+  pageNum?: number;
+  pageSize?: number;
+}>();
+
+const getRowIndex = (index: number) => {
+  const { pageNum = 1, pageSize = 10 } = props;
+  return (pageNum - 1) * pageSize + index + 1;
+};
 
 const emit = defineEmits(["handleSelectionChange", "edit", "detail", "repair"]);
 

@@ -86,15 +86,26 @@
 
     <el-card shadow="never">
       <div class="data-table__toolbar">
-        <el-button
-          v-hasPerm="['ledger:electric-cabinet-inspection:add']"
-          type="success"
-          icon="plus"
-          @click="handleOpenDialog()"
-        >
-          新增
-        </el-button>
         <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['ledger:electric-cabinet-inspection:add']"
+            type="success"
+            icon="plus"
+            @click="handleOpenDialog()"
+          >
+            新增
+          </el-button>
+          <el-button
+            v-hasPerm="['ledger:electric-cabinet-inspection:delete']"
+            type="danger"
+            icon="delete"
+            :disabled="removeIds.length === 0"
+            @click="handleDelete()"
+          >
+            批量删除
+          </el-button>
+        </div>
+        <div class="data-table__toolbar--tools">
           <el-button
             v-hasPerm="'ledger:elec-motor:add'"
             icon="upload"
@@ -116,6 +127,12 @@
         border
         @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
+          </template>
+        </el-table-column>
         <el-table-column
           key="eciReportNo"
           label="报告编号"

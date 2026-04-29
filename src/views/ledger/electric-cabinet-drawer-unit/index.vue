@@ -43,15 +43,26 @@
 
     <el-card shadow="never">
       <div class="data-table__toolbar">
-        <el-button
-          v-hasPerm="['ledger:electric-cabinet-drawer-unit:add']"
-          type="success"
-          icon="plus"
-          @click="handleOpenDialog()"
-        >
-          新增
-        </el-button>
-        <div class="data-table__toolbar--tools">
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['ledger:electric-cabinet-drawer-unit:add']"
+            type="success"
+            icon="plus"
+            @click="handleOpenDialog()"
+          >
+            新增
+          </el-button>
+          <el-button
+            v-hasPerm="['ledger:electric-cabinet-drawer-unit:delete']"
+            type="danger"
+            :disabled="removeIds.length === 0"
+            icon="delete"
+            @click="handleDelete()"
+          >
+            批量删除
+          </el-button>
+        </div>
+        <div class="data-table__toolbar--actions">
           <el-button
             v-hasPerm="'ledger:elec-motor:add'"
             icon="upload"
@@ -74,6 +85,12 @@
         border
         @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ getRowIndex(scope.$index) }}
+          </template>
+        </el-table-column>
         <el-table-column
           key="ecduDrawerNo"
           label="抽屉编号"
@@ -273,6 +290,10 @@ const queryParams = reactive<ElectricCabinetDrawerUnitPageQuery>({
   pageNum: 1,
   pageSize: 10,
 });
+
+const getRowIndex = (index: number) => {
+  return (queryParams.pageNum - 1) * queryParams.pageSize + index + 1;
+};
 
 // 抽屉柜抽屉单元明细表格数据
 const pageData = ref<ElectricCabinetDrawerUnitPageVO[]>([]);

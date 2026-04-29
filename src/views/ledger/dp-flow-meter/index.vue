@@ -72,7 +72,12 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column key="id" label="序号" prop="id" min-width="150" align="center" />
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
+          </template>
+        </el-table-column>
+        <el-table-column key="id" label="ID" prop="id" min-width="150" align="center" />
         <el-table-column
           key="dpFlowDevice"
           label="装置名称"

@@ -30,6 +30,15 @@
           >
             新增
           </el-button>
+          <el-button
+            v-hasPerm="['ledger:dv-temperature-gauge:delete']"
+            type="danger"
+            icon="delete"
+            :disabled="removeIds.length === 0"
+            @click="handleBatchDelete"
+          >
+            批量删除
+          </el-button>
         </div>
 
         <div class="data-table__toolbar--tools">
@@ -54,6 +63,8 @@
       <table-data
         :loading="loading"
         :page-data="pageData"
+        :page-num="queryParams.pageNum"
+        :page-size="queryParams.pageSize"
         @edit="editDv"
         @repair="repairDv"
         @delete="deleteDv"
@@ -75,7 +86,7 @@
     />
     <maintance
       :formdata="maintanceFormData"
-      :visable="drawerVisable"
+      :visable="maintanceDrawerVisible"
       @cancel="cancel"
       @confirm="confirm"
     />
@@ -104,12 +115,14 @@ import DvTemperatureGaugeAPI, {
 } from "@/api/ledger/dv-temperature-gauge-api";
 import { DvTemperatureGaugeMaintenanceForm } from ".";
 import MaintainPlanAPI from "@/api/maintenance/maintain-plan-api";
+import { ElMessage, ElMessageBox } from "element-plus";
 const queryFormRef = ref();
 const loading = ref(false);
 const importDialogVisible = ref(false);
 const removeIds = ref<number[]>([]);
 const total = ref(0);
 const drawerVisable: Ref<boolean> = ref(false);
+const maintanceDrawerVisible: Ref<boolean> = ref(false);
 const option = ref<string>("");
 const queryParams = reactive<DvTemperatureGaugePageQuery>({
   pageNum: 1,
@@ -150,36 +163,41 @@ function handleQuery() {
 //清空要添加的表单
 const resetAddFormData = () => {
   formData.id = undefined;
-  formData.indexNumber = undefined;
-  formData.insertionDepth = undefined;
-  formData.installationLocationAndPurpose = undefined;
-  formData.interlockSetValue = undefined;
+  formData.indexNumber = "";
+  formData.insertionDepth = "";
+  formData.installationLocationAndPurpose = "";
+  formData.interlockSetValue = "";
   formData.interlocked = 0;
-  formData.manufacturer = undefined;
-  formData.measurementRange = undefined;
-  formData.precision = undefined;
-  formData.remark = undefined;
-  formData.specificationModel = undefined;
-  formData.tagNumber = undefined;
-  formData.status = 0;
-  formData.deviceName = undefined;
-  formData.deviceNameSuffix = undefined;
-  formData.dvType = undefined;
+  formData.manufacturer = "";
+  formData.measurementRange = "";
+  formData.precision = "";
+  formData.remark = "";
+  formData.specificationModel = "";
+  formData.tagNumber = "";
+  formData.status = 1;
+  formData.deviceName = "";
+  formData.deviceNameSuffix = "";
+  formData.factory = "";
+  formData.dvType = "";
 };
 const openDrawer = (args?: any) => {
-  drawerVisable.value = true;
   switch (args) {
     case "edit":
+      drawerVisable.value = true;
       option.value = "edit";
       break;
     case "repair":
+      maintanceDrawerVisible.value = true;
+      maintanceFormData.tagNumber = formData.tagNumber;
       option.value = "repair";
       break;
     case "add":
+      drawerVisable.value = true;
       resetAddFormData();
       option.value = "add";
       break;
     case "delete":
+      drawerVisable.value = true;
       option.value = "delete";
       break;
   }
@@ -195,10 +213,46 @@ const resetQuery = () => {
 
 const deleteDv = (args?: any) => {
   const [data] = args;
-  DvTemperatureGaugeAPI.deleteByIds(data.row.id).finally(() => {
-    handleResetQuery();
+  ElMessageBox.confirm("确认删除该数据项?", "警告", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  }).then(() => {
+    loading.value = true;
+    DvTemperatureGaugeAPI.deleteByIds(data.row.id)
+      .then(() => {
+        ElMessage.success("删除成功");
+        handleResetQuery();
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   });
 };
+
+/** 批量删除 */
+function handleBatchDelete() {
+  if (removeIds.value.length === 0) {
+    ElMessage.warning("请选择要删除的数据");
+    return;
+  }
+
+  ElMessageBox.confirm(`确认删除选中的${removeIds.value.length}条数据吗?`, "警告", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  }).then(() => {
+    loading.value = true;
+    DvTemperatureGaugeAPI.deleteByIds(removeIds.value.join(","))
+      .then(() => {
+        ElMessage.success("删除成功");
+        handleResetQuery();
+      })
+      .finally(() => {
+        loading.value = false;
+      });
+  });
+}
 /** 重置温度查询 */
 function handleResetQuery() {
   queryFormRef.value!.resetFields();
@@ -208,39 +262,55 @@ function handleResetQuery() {
 
 /** 行复选框选中记录选中ID集合 */
 function handleSelectionChange(selection: any) {
-  removeIds.value = selection.map((item: any) => item.id);
+  console.log(selection);
+  removeIds.value = selection.map((item: any) => {
+    console.log(item.id);
+    return item.id;
+  });
 }
 
 const confirm = () => {
   if (option.value === "add") {
-    console.log(formData.dvType);
-    DvTemperatureGaugeAPI.create(formData).finally(() => {
-      drawerVisable.value = false;
-      handleResetQuery();
-    });
+    loading.value = true;
+    DvTemperatureGaugeAPI.create(formData)
+      .then(() => {
+        ElMessage.success("新增成功");
+        drawerVisable.value = false;
+        handleResetQuery();
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   }
   if (option.value === "edit") {
-    DvTemperatureGaugeAPI.update(formData!.id!.toString(), formData).finally(() => {
-      drawerVisable.value = false;
-      handleResetQuery();
-    });
+    loading.value = true;
+    DvTemperatureGaugeAPI.update(formData!.id!.toString(), formData)
+      .then(() => {
+        ElMessage.success("修改成功");
+        drawerVisable.value = false;
+        handleResetQuery();
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   }
   if (option.value === "repair") {
-    DvTemperatureGaugeAPI.update(formData!.id!.toString(), formData).finally(() => {
-      drawerVisable.value = false;
-      handleResetQuery();
-    });
-  }
-  if (option.value === "repair") {
-    MaintainPlanAPI.create(maintanceFormData).finally(() => {
-      drawerVisable.value = false;
-      handleResetQuery();
-    });
+    loading.value = true;
+    DvTemperatureGaugeAPI.update(formData!.id!.toString(), formData)
+      .then(() => {
+        ElMessage.success("修改成功");
+        maintanceDrawerVisible.value = false;
+        handleResetQuery();
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   }
 };
 
 const cancel = () => {
   drawerVisable.value = false;
+  maintanceDrawerVisible.value = false;
 };
 
 const handleOpenImportDialog = () => {

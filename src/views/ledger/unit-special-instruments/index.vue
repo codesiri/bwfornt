@@ -36,7 +36,7 @@
             icon="delete"
             @click="handleDelete()"
           >
-            删除
+            批量删除
           </el-button>
         </div>
         <div class="data-table__toolbar--tools">
@@ -65,6 +65,12 @@
         border
         @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="scope">
+            {{ getRowIndex(scope.$index) }}
+          </template>
+        </el-table-column>
         <el-table-column
           key="tagNumber"
           label="位号"
@@ -287,6 +293,10 @@ const queryParams = reactive<UnitSpecialInstrumentsPageQuery>({
   instrumentName: "",
   status: undefined,
 });
+
+const getRowIndex = (index: number) => {
+  return (queryParams.pageNum - 1) * queryParams.pageSize + index + 1;
+};
 
 // 机组特殊仪表格数据
 const pageData = ref<UnitSpecialInstrumentsPageVO[]>([]);
